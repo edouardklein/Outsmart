@@ -40,25 +40,42 @@ TERRAIN = random_terrain()
 
 ACTIONS = ["UP", "DOWN", "LEFT", "RIGHT", "PICK"]
 
-Q0 = {k:np.array([0. for a in ACTIONS])
-      for k in itertools.product(*[range(1,5) for i in range(0,9)])}
+def phi(s):
+    """Feature vector on the state space"""
+    s = abs(s).reshape(-1)
+    answer = np.zeros(4*9)
+    answer[:9] = (s==1)*1.
+    answer[9:18] = (s==2)*1.
+    answer[18:27] = (s==3)*1.
+    answer[27:36] = (s==4)*1.
+    return answer
+
+Q0 = [np.zeros(4*9) for a in ACTIONS]
 Q = Q0
 
 def q_function(q):
-    """Handle the nitty gritty BS of querying the dict"""
+    """Returns the q function from the weight vectors"""
     def answer(s):
-        return q[tuple(abs(s).reshape(-1))]
+        return [np.dot(omega, phi(s)) for omega in q]
     return answer
 
 def random_greedy(q, s):
     """Choose an action according to a random choice wheited by the Q-value"""
     # From https://docs.python.org/dev/library/random.html
     weights = q(s)
-    if sum(weights) == 0:
-        return random.choice(ACTIONS)
+    weights += min(weights) + 1  # All weights > 0, and adding some weight to all options introduces some randomness
+    assert len(weights) == len(ACTIONS)
+    assert all(weights >= 0)
     cumdist = list(itertools.accumulate(weights))
     x = random.random() * cumdist[-1]
-    return ACTIONS[bisect.bisect(cumdist, x)]
+    try:
+        return ACTIONS[bisect.bisect(cumdist, x)]
+    except IndexError:
+        print("BBBBUUUUUUUUUUUG")
+        print("x is %f"%x)
+        print("Cumul dist is ")
+        print(cumdist)
+        return random.choice(ACTIONS)
 
 def ij2xy(m, i, j):
     "We use matrix-oriented coordinates i,j, but to display we need oriented abc/ord x, y instead"
@@ -96,7 +113,7 @@ def robot_state(TERRAIN):
     elif j+1 > 9:
         t = np.roll(t, -1, 1)
         j-=1
-    return t[i-1:i+2, j-1:j+2]
+    return t[i-1:i+2, j-1:j+2].copy()
 
 def apply_action(m, action):
     """Return m after action has been applied to it"""
@@ -141,7 +158,7 @@ def display_traj(traj):
 
 def reward(s1, a, s2):
     """Test reward function : we like to pick things"""
-    if a == 'PICK' and s1[4] in [3,4]:  # SHROOMS or BERRIES
+    if a == 'PICK' and s1[1,1] in [3,4]:  # SHROOMS or BERRIES
         return 1
     else:
         return 0
@@ -150,22 +167,41 @@ def sars(ma):
     """Turns a list of terrain, action into a sars list suitable for Q-learning"""
     answer = []
     for m1,a,m2 in zip(ma[::2], ma[1::2], ma[2::2]):
-        s1 = tuple(abs(robot_state(m1)).reshape(-1))
-        s2 = tuple(abs(robot_state(m2)).reshape(-1))
+        s1 = abs(robot_state(m1))
+        s2 = abs(robot_state(m2))
         r = reward(s1, a, s2)
         answer.append([s1, a, r, s2])
     return answer
 
 def Q_learning(Q, sars):
     answer = Q.copy()
+    Q_func = q_function(answer)
     alpha = 0.1  # PARAMETER
     gamma = 0.9  # PARAMETER
+    regression_X = [[] for a in ACTIONS]
+    regression_Y = [[] for a in ACTIONS]
     for s1, a, r, s2 in sars:
-        old = answer[s1][ACTIONS.index(a)]
-        Vs2 = max(Q[s2])
+        old = Q_func(s1)[ACTIONS.index(a)]
+        Vs2 = max(Q_func(s2))
         new = old + alpha*(r + gamma*Vs2 - old)
-        answer[s1][ACTIONS.index(a)] = new
+        regression_X[ACTIONS.index(a)].append(phi(s1))
+        regression_Y[ACTIONS.index(a)].append(new)
+    #import pdb
+    #pdb.set_trace()
+    for i in range(len(ACTIONS)):
+        if regression_X[i] and regression_Y[i]:
+            answer[i],_,_,_ = np.linalg.lstsq(np.array(regression_X[i]),
+                                        np.array(regression_Y[i]))
     return answer
+
+def print_q(q):
+    terrains = ["EARTH", "BUSH", "BERRIES", "SHROOMS"]
+    for a in range(len(ACTIONS)):
+        print(ACTIONS[a])
+        for t in range(len(terrains)):
+            print(terrains[t])
+            omega = q[a][9*t:9*t+9]
+            print(omega.reshape(3,3))
 
 
 @WINDOW.event
@@ -204,9 +240,9 @@ def on_key_press(symbol, modifiers):
         ma = walk(TERRAIN, q_function(Q), 100)
         sars_list = sars(ma)
         Q = Q_learning(Q, sars_list)
-        pyglet.clock.schedule_once(lambda t: display_traj(ma[::2]), 0)
+        #pyglet.clock.schedule_once(lambda t: display_traj(ma[::2]), 0)
         TERRAIN = ma[-1]
-        print("Mean value is now %f"%np.mean([max(v) for v in Q.values()]))
+        print_q(Q)
     ROBOT_WINDOW.dispatch_event('on_draw')
 
 pyglet.app.run()
