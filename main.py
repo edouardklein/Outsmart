@@ -9,22 +9,25 @@ import itertools
 import bisect
 import random
 
+TILE_SIZE_X = 64
+TILE_SIZE_Y = 32
+
 I_MAX = 9
 J_MAX = 9
 
-WINDOW = pyglet.window.Window((I_MAX+1)*32, (J_MAX+1)*32)
+ROBOT_WINDOW = pyglet.window.Window(2*3*TILE_SIZE_X, 2*3*TILE_SIZE_Y)
+ROBOT_WINDOW.set_location((I_MAX+1)*TILE_SIZE_X,0)
+WINDOW = pyglet.window.Window(2*(I_MAX+1)*TILE_SIZE_X, (2*(J_MAX+1)+2)*TILE_SIZE_Y)
 WINDOW.set_location(0,0)
-ROBOT_WINDOW = pyglet.window.Window(3*32, 3*32)
-ROBOT_WINDOW.set_location((I_MAX+1)*32,0)
-EARTH = pyglet.image.load('EARTH.png')
-BUSH = pyglet.image.load('BUSH.png')
-BERRIES = pyglet.image.load('BERRIES.png')
-SHROOMS = pyglet.image.load('SHROOMS.png')
-ROBOT = pyglet.image.load('ROBOT.png')
+EARTH = pyglet.image.load('img/earth.png')
+GRASS = pyglet.image.load('img/grass.png')
+CRYSTALS = pyglet.image.load('img/crystals.png')
+ROCKS = pyglet.image.load('img/rocks.png')
+ROBOT = pyglet.image.load('img/robot.png')
 IMAGES = {1: EARTH,
-          2: BUSH ,
-          3: BERRIES,
-          4: SHROOMS,
+          2: GRASS ,
+          3: CRYSTALS,
+          4: ROCKS,
           -1: ROBOT} #-2 robot & shrooms, -2 robots and berries, etc.
 
 def random_terrain():
@@ -90,9 +93,12 @@ def greedy(q, s):
     #    return random.choice(ACTIONS)
 
 def ij2xy(m, i, j):
-    "We use matrix-oriented coordinates i,j, but to display we need oriented abc/ord x, y instead"
-    x = j*32
-    y = (m.shape[1] - 1 - i)*32
+    """We use matrix-oriented coordinates i,j, but to display we need oriented abc/ord
+    x, y instead, using isometric projection"""
+    x = (m.shape[0] - i + j - 1)*TILE_SIZE_X
+    #    x = j*TILE_SIZE
+    #y = (m.shape[1] - 1 - i)*TILE_SIZE
+    y = (m.shape[1]+m.shape[0] -i - j - 2)*TILE_SIZE_Y
     return x,y
 
 def draw_assets(m, IMAGES):
@@ -143,7 +149,7 @@ def apply_action(m, action):
     elif action == "PICK":
         if m[tuple(robot_loc)] == 4:  # SHROOMS
             m[tuple(robot_loc)] = 1  # EARTH
-        elif m[tuple(robot_loc)] == 3:  # BERRIES
+        elif m[tuple(robot_loc)] == 3:  # CRYSTALS
             m[tuple(robot_loc)] = 2  # BUSHES
     m[tuple(robot_loc)] = -m[tuple(robot_loc)]
     return m
@@ -170,7 +176,7 @@ def display_traj(traj):
 
 def reward(s1, a, s2):
     """Test reward function : we like to pick things"""
-    if a == 'PICK' and s1[1,1] in [3,4]:  # SHROOMS or BERRIES
+    if a == 'PICK' and s1[1,1] in [3,4]:  # SHROOMS or CRYSTALS
         return 1
     else:
         return 0
@@ -219,7 +225,7 @@ def Q_learning(Q, sars):
     return answer
 
 def print_omega(omega):
-    terrains = ["EARTH", "BUSH", "BERRIES", "SHROOMS"]
+    terrains = ["EARTH", "GRASS", "CRYSTALS", "SHROOMS"]
     for a in range(len(ACTIONS)):
         print(ACTIONS[a])
         for t in range(len(terrains)):
@@ -274,13 +280,25 @@ def on_key_press(symbol, modifiers):
         a = greedy(q_function(omega), robot_state(TERRAIN))
         print(a)
         TERRAIN = apply_action(TERRAIN, a)
+    elif symbol == key.Q:  # Quit
+        print("Quitting")
+        pyglet.app.exit()
     ROBOT_WINDOW.dispatch_event('on_draw')
 
 @WINDOW.event
 def on_mouse_press(x, y, button, modifiers):
-    j = x//32
-    i = (I_MAX*32-y)//32 + 1
+    print(x,y)
+    ix = x
+    iy = ((2*(J_MAX+1)+2)*TILE_SIZE_Y-y)
+    (print(ix,iy))
+    ix = ix / TILE_SIZE_X / 2
+    iy = iy / TILE_SIZE_Y / 2 - .2
+    print(ix, iy)
+    print(round(iy-ix)+4, round(ix+iy)-6)
+    i = round(iy-ix)+4
+    j = round(ix+iy)-6
     TERRAIN[i,j] = TERRAIN[i,j] + 1 if TERRAIN[i,j] != 4 else 1
     ROBOT_WINDOW.dispatch_event('on_draw')
 
 pyglet.app.run()
+
