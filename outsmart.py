@@ -324,18 +324,19 @@ def on_key_press(symbol, modifiers):
 
 @WINDOW.event
 def on_mouse_press(x, y, button, modifiers):
-    print(x,y)
+    global TERRAIN
     ix = x
     iy = ((2*(J_MAX+1)+2)*TILE_SIZE_Y-y)
-    (print(ix,iy))
     ix = ix / TILE_SIZE_X / 2
     iy = iy / TILE_SIZE_Y / 2 - .2
-    print(ix, iy)
-    print(round(iy-ix)+4, round(ix+iy)-6)
     i = round(iy-ix)+4
     j = round(ix+iy)-6
-    TERRAIN[i,j] = TERRAIN[i,j] + 1 if TERRAIN[i,j] != 4 else 1
-    #ROBOT_WINDOW.dispatch_event('on_draw')
+    if button == pyglet.window.mouse.LEFT:
+        robot_loc = np.argwhere(TERRAIN<0)[0]
+        TERRAIN[tuple(robot_loc)] = -TERRAIN[tuple(robot_loc)]
+        TERRAIN[i,j] = -TERRAIN[i, j]
+    elif button == pyglet.window.mouse.RIGHT:
+        TERRAIN[i,j] = TERRAIN[i,j] + 1 if TERRAIN[i,j] != 4 else 1
 
 pyglet.font.add_file('img/kenvector_future_thin.ttf')
 KenFuture = pyglet.font.load('KenVector Future Thin Regular')
