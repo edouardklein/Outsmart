@@ -35,6 +35,10 @@ IMAGES = {1: EARTH,
           4: ROCKS,
           -1: ROBOT} #-2 robot & shrooms, -2 robots and berries, etc.
 
+TEXT = [[[10, 10], "TEST 10 10"], [[20, 30], "Further test"]]
+
+print("FIRST SET\n",TEXT)
+
 def random_terrain():
     """Return a randomized terrain"""
     answer = np.ones((I_MAX+1,J_MAX+1))
@@ -106,8 +110,18 @@ def ij2xy(m, i, j):
     y = (m.shape[1]+m.shape[0] -i - j - 2)*TILE_SIZE_Y
     return x,y
 
-def draw_assets(m, IMAGES):
+def draw_text(text_list):
+    """Draw the given [[x, y], text] list"""
+    for [x,y], t in text_list:
+        label = pyglet.text.Label(t, x=x, y=y,
+                                  font_name='KenVector Future Thin Regular')
+        label.draw()
+
+
+def draw_assets(m, text, IMAGES):
     "Dranw fancy drawings of shrooms, etc."
+    draw_text(STORY_TEXT)
+    draw_text(OBJ_TEXT)
     for i in range(0, m.shape[0]):
         for j in range(0, m.shape[1]):
             x,y = ij2xy(m, i, j)
@@ -119,6 +133,21 @@ def draw_assets(m, IMAGES):
             if m[i,j] < 0:
                 sprite = pyglet.sprite.Sprite(IMAGES[-1], x=x, y=y)
                 sprite.draw()
+
+def xy_text(starting_xy, text):
+    """Return the list of [[X, y], text] items that draw_text() will understand"""
+    x, y = starting_xy
+    return [[[x, y - i*15], line] for i, line in enumerate(text)]
+
+def story_text(text):
+    """Save the given text to be displayed in the upper left corner"""
+    global STORY_TEXT
+    STORY_TEXT = xy_text([0, Y_MAX-10], text.split("\n"))
+
+def objective_text(text):
+    """Save the given text to be displayed in the upper right corner"""
+    global OBJ_TEXT
+    OBJ_TEXT = xy_text([X_MAX-600, Y_MAX-10], ["OBJECTIVES"]+text.split("\n"))
 
 def robot_state(TERRAIN):
     """Return the state visible to a robot"""
@@ -239,12 +268,15 @@ def print_omega(omega):
             print(x.reshape(3,3))
 
 
+
 @WINDOW.event
 def on_draw():
     global TERRAIN
+    global TEXT
     print("Drawing main")
+    print(TEXT)
     WINDOW.clear()
-    draw_assets(TERRAIN, IMAGES)
+    draw_assets(TERRAIN, TEXT, IMAGES)
 
 #@ROBOT_WINDOW.event
 #def on_draw():
@@ -304,6 +336,9 @@ def on_mouse_press(x, y, button, modifiers):
     j = round(ix+iy)-6
     TERRAIN[i,j] = TERRAIN[i,j] + 1 if TERRAIN[i,j] != 4 else 1
     #ROBOT_WINDOW.dispatch_event('on_draw')
+
+pyglet.font.add_file('img/kenvector_future_thin.ttf')
+KenFuture = pyglet.font.load('KenVector Future Thin Regular')
 
 #pyglet.app.run()
 
