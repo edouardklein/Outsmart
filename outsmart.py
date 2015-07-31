@@ -34,6 +34,8 @@ IMAGES = {1: EARTH,
           3: CRYSTALS,
           4: ROCKS,
           -1: ROBOT} #-2 robot & shrooms, -2 robots and berries, etc.
+OBJ_FUNC = lambda: False
+NEXT_FUNC = lambda: None
 
 TEXT = [[[10, 10], "TEST 10 10"], [[20, 30], "Further test"]]
 
@@ -120,6 +122,8 @@ def draw_text(text_list):
 
 def draw_assets(m, text, IMAGES):
     "Dranw fancy drawings of shrooms, etc."
+    if OBJ_FUNC(TERRAIN):
+        NEXT_FUNC()
     draw_text(STORY_TEXT)
     draw_text(OBJ_TEXT)
     for i in range(0, m.shape[0]):
@@ -142,6 +146,7 @@ def xy_text(starting_xy, text):
 def story_text(text):
     """Save the given text to be displayed in the upper left corner"""
     global STORY_TEXT
+    print("Story text now : "+text)
     STORY_TEXT = xy_text([0, Y_MAX-10], text.split("\n"))
 
 def objective_text(text):
@@ -149,6 +154,21 @@ def objective_text(text):
     global OBJ_TEXT
     OBJ_TEXT = xy_text([X_MAX-600, Y_MAX-10], ["OBJECTIVES"]+text.split("\n"))
 
+def script(s_text="", o_text="", objective_function=lambda m:False,
+           next_step=lambda:None):
+    """Script the user interface
+
+    *_text variables are self explanatory
+
+    at each redraw, objective_function will be called. If it returns True,
+    next_step is called."""
+    global OBJ_FUNC
+    global NEXT_FUNC
+    story_text(s_text)
+    objective_text(o_text)
+    OBJ_FUNC = objective_function
+    NEXT_FUNC = next_step
+    
 def robot_state(TERRAIN):
     """Return the state visible to a robot"""
     t = TERRAIN
