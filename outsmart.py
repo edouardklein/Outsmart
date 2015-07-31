@@ -15,9 +15,14 @@ TILE_SIZE_Y = 32
 I_MAX = 9
 J_MAX = 9
 
-ROBOT_WINDOW = pyglet.window.Window(2*3*TILE_SIZE_X, 2*3*TILE_SIZE_Y)
-ROBOT_WINDOW.set_location((I_MAX+1)*TILE_SIZE_X,0)
-WINDOW = pyglet.window.Window(2*(I_MAX+1)*TILE_SIZE_X, (2*(J_MAX+1)+2)*TILE_SIZE_Y)
+X_MAX = 2*(I_MAX+1)*TILE_SIZE_X
+Y_MAX = (2*(J_MAX+1)+2)*TILE_SIZE_Y
+
+#ROBOT_WINDOW = pyglet.window.Window(2*3*TILE_SIZE_X, 2*3*TILE_SIZE_Y)
+#ROBOT_WINDOW.set_location((I_MAX+1)*TILE_SIZE_X,0)
+
+TERRAIN = np.ones((10,10))
+WINDOW = pyglet.window.Window(X_MAX, Y_MAX)
 WINDOW.set_location(0,0)
 EARTH = pyglet.image.load('img/earth.png')
 GRASS = pyglet.image.load('img/grass.png')
@@ -40,7 +45,7 @@ def random_terrain():
     answer[0,0] = -3  # DEBUG
     return answer
 
-TERRAIN = random_terrain()
+#TERRAIN = random_terrain()
 
 ACTIONS = ["UP", "DOWN", "LEFT", "RIGHT", "PICK"]
 
@@ -241,12 +246,12 @@ def on_draw():
     WINDOW.clear()
     draw_assets(TERRAIN, IMAGES)
 
-@ROBOT_WINDOW.event
-def on_draw():
-    global TERRAIN
-    print("Drawing state")
-    ROBOT_WINDOW.clear()
-    draw_assets(robot_state(TERRAIN), IMAGES)
+#@ROBOT_WINDOW.event
+#def on_draw():
+#    global TERRAIN
+#    print("Drawing state")
+#    ROBOT_WINDOW.clear()
+#    draw_assets(robot_state(TERRAIN), IMAGES)
 
 @WINDOW.event
 def on_key_press(symbol, modifiers):
@@ -283,7 +288,7 @@ def on_key_press(symbol, modifiers):
     elif symbol == key.Q:  # Quit
         print("Quitting")
         pyglet.app.exit()
-    ROBOT_WINDOW.dispatch_event('on_draw')
+    #ROBOT_WINDOW.dispatch_event('on_draw')
 
 @WINDOW.event
 def on_mouse_press(x, y, button, modifiers):
@@ -298,7 +303,7 @@ def on_mouse_press(x, y, button, modifiers):
     i = round(iy-ix)+4
     j = round(ix+iy)-6
     TERRAIN[i,j] = TERRAIN[i,j] + 1 if TERRAIN[i,j] != 4 else 1
-    ROBOT_WINDOW.dispatch_event('on_draw')
+    #ROBOT_WINDOW.dispatch_event('on_draw')
 
-pyglet.app.run()
+#pyglet.app.run()
 
