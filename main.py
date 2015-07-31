@@ -23,7 +23,7 @@ EARTH = pyglet.image.load('img/earth.png')
 GRASS = pyglet.image.load('img/grass.png')
 CRYSTALS = pyglet.image.load('img/crystals.png')
 ROCKS = pyglet.image.load('img/rocks.png')
-ROBOT = pyglet.image.load('img/robot.png')
+ROBOT = pyglet.image.load('img/robot_blue_right.png')
 IMAGES = {1: EARTH,
           2: GRASS ,
           3: CRYSTALS,
