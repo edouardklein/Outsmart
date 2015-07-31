@@ -5,6 +5,8 @@ glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 from pyglet.window import key
 import numpy as np
 import numpy.random as nprand
+from itertools import zip_longest
+import math
 import itertools
 import bisect
 import random
@@ -29,6 +31,9 @@ GRASS = pyglet.image.load('img/grass.png')
 CRYSTALS = pyglet.image.load('img/crystals.png')
 ROCKS = pyglet.image.load('img/rocks.png')
 ROBOT = pyglet.image.load('img/robot_blue_right.png')
+BUTTON_LEFT = pyglet.image.load('img/button_left.png')
+BUTTON_MID = pyglet.image.load('img/button_mid.png')
+BUTTON_RIGHT = pyglet.image.load('img/button_right.png')
 IMAGES = {1: EARTH,
           2: GRASS ,
           3: CRYSTALS,
@@ -38,6 +43,8 @@ OBJ_FUNC = lambda: False
 NEXT_FUNC = lambda: None
 
 TEXT = [[[10, 10], "TEST 10 10"], [[20, 30], "Further test"]]
+
+BUTTONS = {}
 
 print("FIRST SET\n",TEXT)
 
@@ -119,11 +126,39 @@ def draw_text(text_list):
                                   font_name='KenVector Future Thin Regular')
         label.draw()
 
+#https://docs.python.org/3.4/library/itertools.html
+def grouper(iterable, n, fillvalue=" "):
+    "Collect data into fixed-length chunks or blocks"
+    # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx"
+    args = [iter(iterable)] * n
+    return map(lambda t: ''.join(t), zip_longest(*args, fillvalue=fillvalue))
+
+def draw_buttons(buttons):
+    for text, [rect, _] in buttons.items():
+        x, y, max_x, max_y = rect
+        sprite = pyglet.sprite.Sprite(BUTTON_LEFT, x=x, y=y)
+        sprite.draw()
+        pixel_length = len(text)*10.5
+        for i in range(0, math.ceil(pixel_length//16)):
+            sprite = pyglet.sprite.Sprite(BUTTON_MID, x=x+6+i*16, y=y)
+            sprite.draw()
+        sprite = pyglet.sprite.Sprite(BUTTON_RIGHT, x=max_x-6,
+                                      y=y)
+        sprite.draw()
+        label = pyglet.text.Label(text, x=x+6, y=y+9,
+                                  font_name='KenVector Future Thin Regular')
+        label.draw()
+
+def new_button(x, y, text, callback):
+    global BUTTONS
+    pixel_length = len(text)*10.5
+    BUTTONS[text] = [[x,y, x+12+math.ceil(pixel_length//16)*16, y+26], callback]
 
 def draw_assets(m, text, IMAGES):
     "Dranw fancy drawings of shrooms, etc."
     if OBJ_FUNC(TERRAIN):
         NEXT_FUNC()
+    draw_buttons(BUTTONS)
     draw_text(STORY_TEXT)
     draw_text(OBJ_TEXT)
     for i in range(0, m.shape[0]):
@@ -168,7 +203,8 @@ def script(s_text="", o_text="", objective_function=lambda m:False,
     objective_text(o_text)
     OBJ_FUNC = objective_function
     NEXT_FUNC = next_step
-    
+
+
 def robot_state(TERRAIN):
     """Return the state visible to a robot"""
     t = TERRAIN
@@ -345,6 +381,11 @@ def on_key_press(symbol, modifiers):
 @WINDOW.event
 def on_mouse_press(x, y, button, modifiers):
     global TERRAIN
+    if button == pyglet.window.mouse.LEFT:
+        for rect, cb in BUTTONS.values():
+            if x >= rect[0] and y >= rect[1] and x <= rect[2] and y <= rect[3]:
+                cb()
+                return
     ix = x
     iy = ((2*(J_MAX+1)+2)*TILE_SIZE_Y-y)
     ix = ix / TILE_SIZE_X / 2
@@ -353,8 +394,8 @@ def on_mouse_press(x, y, button, modifiers):
     j = round(ix+iy)-6
     if button == pyglet.window.mouse.LEFT:
         robot_loc = np.argwhere(TERRAIN<0)[0]
-        TERRAIN[tuple(robot_loc)] = -TERRAIN[tuple(robot_loc)]
         TERRAIN[i,j] = -TERRAIN[i, j]
+        TERRAIN[tuple(robot_loc)] = -TERRAIN[tuple(robot_loc)]
     elif button == pyglet.window.mouse.RIGHT:
         TERRAIN[i,j] = TERRAIN[i,j] + 1 if TERRAIN[i,j] != 4 else 1
 
