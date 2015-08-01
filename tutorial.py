@@ -5,10 +5,8 @@ osmt.TERRAIN[6,8] = 2
 osmt.TERRAIN[0,0] = -1
 
 
-osmt.new_button(10, 100, "Test button", lambda: print("TEST BUTTON"))
-osmt.new_button(900, 50, "Test button with long text", lambda: print("LONG BUTTON"))
-
 def step_2():
+    osmt.new_button(10, 100, "Train", osmt.train)
     osmt.script(s_text="""Good Job !
 You can train Bob with a state-of-the-art
 Reinforcement Learning algorithm.

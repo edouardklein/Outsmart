@@ -42,20 +42,21 @@ IMAGES = {1: EARTH,
 OBJ_FUNC = lambda: False
 NEXT_FUNC = lambda: None
 
-TEXT = [[[10, 10], "TEST 10 10"], [[20, 30], "Further test"]]
+OBJ_TEXT = []
+STORY_TEXT = []
+LOG_TEXT = []
 
 BUTTONS = {}
 
-print("FIRST SET\n",TEXT)
 
 def random_terrain():
     """Return a randomized terrain"""
     answer = np.ones((I_MAX+1,J_MAX+1))
-    #for i,j in zip(nprand.random_integers(0, I_MAX, 3),
-    #               nprand.random_integers(0, J_MAX, 3)):
-    #    answer[i,j] = nprand.random_integers(2, 4)
+    for i,j in zip(nprand.random_integers(0, I_MAX, 8),
+                   nprand.random_integers(0, J_MAX, 8)):
+        answer[i,j] = nprand.random_integers(2, 4)
     answer[0,0] = -answer[0,0]
-    answer[0,0] = -3  # DEBUG
+    #answer[0,0] = -3  # DEBUG
     return answer
 
 #TERRAIN = random_terrain()
@@ -154,13 +155,13 @@ def new_button(x, y, text, callback):
     pixel_length = len(text)*10.5
     BUTTONS[text] = [[x,y, x+12+math.ceil(pixel_length//16)*16, y+26], callback]
 
-def draw_assets(m, text, IMAGES):
+def draw_assets(m, texts, IMAGES):
     "Dranw fancy drawings of shrooms, etc."
     if OBJ_FUNC(TERRAIN):
         NEXT_FUNC()
     draw_buttons(BUTTONS)
-    draw_text(STORY_TEXT)
-    draw_text(OBJ_TEXT)
+    for t in texts:
+        draw_text(t)
     for i in range(0, m.shape[0]):
         for j in range(0, m.shape[1]):
             x,y = ij2xy(m, i, j)
@@ -328,11 +329,9 @@ def print_omega(omega):
 @WINDOW.event
 def on_draw():
     global TERRAIN
-    global TEXT
     print("Drawing main")
-    print(TEXT)
     WINDOW.clear()
-    draw_assets(TERRAIN, TEXT, IMAGES)
+    draw_assets(TERRAIN, [OBJ_TEXT, STORY_TEXT, LOG_TEXT], IMAGES)
 
 #@ROBOT_WINDOW.event
 #def on_draw():
@@ -341,11 +340,31 @@ def on_draw():
 #    ROBOT_WINDOW.clear()
 #    draw_assets(robot_state(TERRAIN), IMAGES)
 
+def train():
+    """Train the robot"""
+    global omega
+    global LOG_TEXT
+    sars_list = []
+    for i in range(10):
+        ma = walk(TERRAIN, q_function(omega), 10, rand=.5)
+        sars_list += sars(ma)
+    try:
+        omega = Q_learning(omega, sars_list)
+    except AssertionError:
+        LOG_TEXT = [[[10, 75], "Error !"]]
+    else:
+        LOG_TEXT = [[[10, 75], "Training successful !"]]
+    #pyglet.clock.schedule_once(lambda t: display_traj(ma[::2]), 0)
+    #TERRAIN = ma[-1]
+    print_omega(omega)
+
+def create_train_button():
+    new_button(10, 100, "Train", train)
+
 @WINDOW.event
 def on_key_press(symbol, modifiers):
     print(symbol)
     global TERRAIN
-    global omega
     if symbol == key.RIGHT:
         TERRAIN = apply_action(TERRAIN, "RIGHT")
     elif symbol == key.LEFT:
@@ -360,14 +379,7 @@ def on_key_press(symbol, modifiers):
         TERRAIN = random_terrain()
     elif symbol == key.T:  # Train
         print('Walking')
-        sars_list = []
-        for i in range(10):
-            ma = walk(TERRAIN, q_function(omega), 10, rand=.5)
-            sars_list += sars(ma)
-        omega = Q_learning(omega, sars_list)
-        #pyglet.clock.schedule_once(lambda t: display_traj(ma[::2]), 0)
-        TERRAIN = ma[-1]
-        print_omega(omega)
+        train()
     elif symbol == key.S:  # Step
         print("Stepping")
         a = greedy(q_function(omega), robot_state(TERRAIN))
