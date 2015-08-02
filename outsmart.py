@@ -44,10 +44,10 @@ class State:
     def __init__(self):
         self.lab = np.ones((I_MAX+1, J_MAX+1))  # Terrain for the lab
 
-        self.obj_func = lambda: False  # Return True when objective is reached
+        self.obj_func = lambda s: False  # Return True when objective is reached
         self.next_func = lambda: None  # Called when obj_func returns True
 
-        self.obj_texts = []  # Displayed in the upper right
+        self.obj_text = []  # Displayed in the upper right
         self.story_text = []  # Displayed in the upper left
         self.log_text = []  # Displayed below the train button
 
@@ -154,8 +154,11 @@ def new_button(x, y, text, callback):
 
 def draw_assets(s):
     "Draw the game state"
-    if s.obj_func(STATE):
-        s.next_func()
+    try:
+        if s.obj_func(STATE):
+            s.next_func()
+    except:
+        pass
     draw_buttons(s.buttons)
     for t in [STATE.obj_text, STATE.story_text, STATE.log_text]:
         draw_text(t)
@@ -357,6 +360,12 @@ def train():
 def create_train_button():
     new_button(10, 100, "Train", train)
 
+#TODO: implement
+def create_load_button(cb, txt="Load"):
+    new_button(10, 60, txt, cb)
+
+def create_save_button(cb,txt="Save"):
+    new_button(10, 20, txt, cb)
 
 @WINDOW.event
 def on_key_press(symbol, modifiers):
