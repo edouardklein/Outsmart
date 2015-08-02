@@ -7,8 +7,6 @@ import numpy as np
 import numpy.random as nprand
 from itertools import zip_longest
 import math
-import itertools
-import bisect
 import random
 
 TILE_SIZE_X = 64
@@ -20,12 +18,11 @@ J_MAX = 9
 X_MAX = 2*(I_MAX+1)*TILE_SIZE_X
 Y_MAX = (2*(J_MAX+1)+2)*TILE_SIZE_Y
 
-#ROBOT_WINDOW = pyglet.window.Window(2*3*TILE_SIZE_X, 2*3*TILE_SIZE_Y)
-#ROBOT_WINDOW.set_location((I_MAX+1)*TILE_SIZE_X,0)
-
-TERRAIN = np.ones((10,10))
 WINDOW = pyglet.window.Window(X_MAX, Y_MAX)
-WINDOW.set_location(0,0)
+WINDOW.set_location(0, 0)
+
+pyglet.font.add_file('img/kenvector_future_thin.ttf')
+KenFuture = pyglet.font.load('KenVector Future Thin Regular')
 EARTH = pyglet.image.load('img/earth.png')
 GRASS = pyglet.image.load('img/grass.png')
 CRYSTALS = pyglet.image.load('img/crystals.png')
@@ -35,47 +32,54 @@ BUTTON_LEFT = pyglet.image.load('img/button_left.png')
 BUTTON_MID = pyglet.image.load('img/button_mid.png')
 BUTTON_RIGHT = pyglet.image.load('img/button_right.png')
 IMAGES = {1: EARTH,
-          2: GRASS ,
+          2: GRASS,
           3: CRYSTALS,
           4: ROCKS,
-          -1: ROBOT} #-2 robot & shrooms, -2 robots and berries, etc.
-OBJ_FUNC = lambda: False
-NEXT_FUNC = lambda: None
+          -1: ROBOT}  # -2 robot & shrooms, -2 robots and berries, etc.
 
-OBJ_TEXT = []
-STORY_TEXT = []
-LOG_TEXT = []
+ACTIONS = ["UP", "DOWN", "LEFT", "RIGHT", "PICK"]
 
-BUTTONS = {}
+
+class State:
+    def __init__(self):
+        self.lab = np.ones((I_MAX+1, J_MAX+1))  # Terrain for the lab
+
+        self.obj_func = lambda: False  # Return True when objective is reached
+        self.next_func = lambda: None  # Called when obj_func returns True
+
+        self.obj_texts = []  # Displayed in the upper right
+        self.story_text = []  # Displayed in the upper left
+        self.log_text = []  # Displayed below the train button
+
+        self.buttons = {}
+
+        self.omega = np.zeros(4*9*len(ACTIONS))  # Paramters for the Q-function
+
+
+STATE = State()
 
 
 def random_terrain():
     """Return a randomized terrain"""
-    answer = np.ones((I_MAX+1,J_MAX+1))
-    for i,j in zip(nprand.random_integers(0, I_MAX, 8),
-                   nprand.random_integers(0, J_MAX, 8)):
-        answer[i,j] = nprand.random_integers(2, 4)
-    answer[0,0] = -answer[0,0]
-    #answer[0,0] = -3  # DEBUG
+    answer = np.ones((I_MAX+1, J_MAX+1))
+    for i, j in zip(nprand.random_integers(0, I_MAX, 8),
+                    nprand.random_integers(0, J_MAX, 8)):
+        answer[i, j] = nprand.random_integers(2, 4)
+    answer[0, 0] = -answer[0, 0]
     return answer
 
-#TERRAIN = random_terrain()
-
-ACTIONS = ["UP", "DOWN", "LEFT", "RIGHT", "PICK"]
 
 def phi(s, a):
     """Feature vector on the state-action space"""
     s = abs(s).reshape(-1)
     answer = np.zeros(4*9*len(ACTIONS))
     start = 4*9*ACTIONS.index(a)
-    answer[start:start+9] = (s==1)*1.
-    answer[start+9:start+18] = (s==2)*1.
-    answer[start+18:start+27] = (s==3)*1.
-    answer[start+27:start+36] = (s==4)*1.
+    answer[start:start+9] = (s == 1)*1.
+    answer[start+9:start+18] = (s == 2)*1.
+    answer[start+18:start+27] = (s == 3)*1.
+    answer[start+27:start+36] = (s == 4)*1.
     return answer
 
-omega_0 = np.zeros(4*9*len(ACTIONS))
-omega = omega_0
 
 def q_function(omega):
     """Returns the q function from the weight vectors"""
@@ -83,56 +87,46 @@ def q_function(omega):
         return np.dot(omega, phi(s, a))
     return answer
 
+
 def greedy(q, s):
     """Choose an action according to a random choice wheited by the Q-value"""
     # From https://docs.python.org/dev/library/random.html
     print(s)
     qsa = [q(s, a) for a in ACTIONS]
-    if all([x==0 for x in qsa]):
+    if all([x == 0 for x in qsa]):
         a = random.choice(ACTIONS)
         print("All zero, radomly choosing "+a)
         return a
     for a in ACTIONS:
-        print("q(s, %s) = %f"%(a, q(s,a)))
+        print("q(s, %s) = %f" % (a, q(s, a)))
     a = ACTIONS[np.argmax(qsa)]
     print("Choosing "+a)
     return a
-    #weights += min(weights) + 0.00001  # All weights > 0, and adding some weight to all options introduces some randomness
-    #assert len(weights) == len(ACTIONS)
-    #assert all(weights >= 0)
-    #cumdist = list(itertools.accumulate(weights))
-    #x = random.random() * cumdist[-1]
-    #try:
-    #    return ACTIONS[bisect.bisect(cumdist, x)]
-    #except IndexError:
-    #    print("BBBBUUUUUUUUUUUG")
-    #    print("x is %f"%x)
-    #    print("Cumul dist is ")
-    #    print(cumdist)
-    #    return random.choice(ACTIONS)
+
 
 def ij2xy(m, i, j):
-    """We use matrix-oriented coordinates i,j, but to display we need oriented abc/ord
-    x, y instead, using isometric projection"""
+    """We use matrix-oriented coordinates i,j, but to display we need oriented
+    abc/ord x, y instead, using isometric projection"""
     x = (m.shape[0] - i + j - 1)*TILE_SIZE_X
-    #    x = j*TILE_SIZE
-    #y = (m.shape[1] - 1 - i)*TILE_SIZE
-    y = (m.shape[1]+m.shape[0] -i - j - 2)*TILE_SIZE_Y
-    return x,y
+    y = (m.shape[1]+m.shape[0] - i - j - 2)*TILE_SIZE_Y
+    return x, y
+
 
 def draw_text(text_list):
     """Draw the given [[x, y], text] list"""
-    for [x,y], t in text_list:
+    for [x, y], t in text_list:
         label = pyglet.text.Label(t, x=x, y=y,
                                   font_name='KenVector Future Thin Regular')
         label.draw()
 
-#https://docs.python.org/3.4/library/itertools.html
+
+# https://docs.python.org/3.4/library/itertools.html
 def grouper(iterable, n, fillvalue=" "):
     "Collect data into fixed-length chunks or blocks"
     # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx"
     args = [iter(iterable)] * n
     return map(lambda t: ''.join(t), zip_longest(*args, fillvalue=fillvalue))
+
 
 def draw_buttons(buttons):
     for text, [rect, _] in buttons.items():
@@ -150,83 +144,94 @@ def draw_buttons(buttons):
                                   font_name='KenVector Future Thin Regular')
         label.draw()
 
-def new_button(x, y, text, callback):
-    global BUTTONS
-    pixel_length = len(text)*10.5
-    BUTTONS[text] = [[x,y, x+12+math.ceil(pixel_length//16)*16, y+26], callback]
 
-def draw_assets(m, texts, IMAGES):
-    "Dranw fancy drawings of shrooms, etc."
-    if OBJ_FUNC(TERRAIN):
-        NEXT_FUNC()
-    draw_buttons(BUTTONS)
-    for t in texts:
+def new_button(x, y, text, callback):
+    global STATE
+    pixel_length = len(text)*10.5
+    STATE.buttons[text] = [[x, y, x+12+math.ceil(pixel_length//16)*16, y+26],
+                           callback]
+
+
+def draw_assets(s):
+    "Draw the game state"
+    if s.obj_func(STATE.lab):
+        s.next_func()
+    draw_buttons(s.buttons)
+    for t in [STATE.obj_text, STATE.story_text, STATE.log_text]:
         draw_text(t)
+    m = s.lab
     for i in range(0, m.shape[0]):
         for j in range(0, m.shape[1]):
-            x,y = ij2xy(m, i, j)
+            x, y = ij2xy(m, i, j)
             sprite = pyglet.sprite.Sprite(IMAGES[1], x=x, y=y)
             sprite.draw()
-            if abs(m[i,j]) > 1:
-                sprite = pyglet.sprite.Sprite(IMAGES[abs(m[i,j])], x=x, y=y)
+            if abs(m[i, j]) > 1:
+                sprite = pyglet.sprite.Sprite(IMAGES[abs(m[i, j])], x=x, y=y)
                 sprite.draw()
-            if m[i,j] < 0:
+            if m[i, j] < 0:
                 sprite = pyglet.sprite.Sprite(IMAGES[-1], x=x, y=y)
                 sprite.draw()
 
+
 def xy_text(starting_xy, text):
-    """Return the list of [[X, y], text] items that draw_text() will understand"""
+    """Return the list of [[X, y], text] items that draw_text() will
+    understand"""
     x, y = starting_xy
     return [[[x, y - i*15], line] for i, line in enumerate(text)]
 
+
 def story_text(text):
     """Save the given text to be displayed in the upper left corner"""
-    global STORY_TEXT
+    global STATE
     print("Story text now : "+text)
-    STORY_TEXT = xy_text([0, Y_MAX-10], text.split("\n"))
+    STATE.story_text = xy_text([0, Y_MAX-10], text.split("\n"))
+
 
 def objective_text(text):
     """Save the given text to be displayed in the upper right corner"""
-    global OBJ_TEXT
-    OBJ_TEXT = xy_text([X_MAX-600, Y_MAX-10], ["OBJECTIVES"]+text.split("\n"))
+    global STATE
+    STATE.obj_text = xy_text([X_MAX-600, Y_MAX-10],
+                             ["OBJECTIVES"]+text.split("\n"))
 
-def script(s_text="", o_text="", objective_function=lambda m:False,
-           next_step=lambda:None):
+
+def script(s_text="", o_text="",
+           objective_function=lambda s: False,
+           next_step=lambda: None):
     """Script the user interface
 
     *_text variables are self explanatory
 
     at each redraw, objective_function will be called. If it returns True,
     next_step is called."""
-    global OBJ_FUNC
-    global NEXT_FUNC
+    global STATE
     story_text(s_text)
     objective_text(o_text)
-    OBJ_FUNC = objective_function
-    NEXT_FUNC = next_step
+    STATE.obj_func = objective_function
+    STATE.next_func = next_step
 
 
-def robot_state(TERRAIN):
+def robot_state(terrain):
     """Return the state visible to a robot"""
-    t = TERRAIN
-    i,j = np.argwhere(t<0)[0]
+    t = terrain.copy()
+    i, j = np.argwhere(t < 0)[0]
     if i-1 < 0:
         t = np.roll(t, 1, 0)
-        i+=1
+        i += 1
     elif i+1 > 9:
         t = np.roll(t, -1, 0)
-        i-=1
+        i -= 1
     if j-1 < 0:
         t = np.roll(t, 1, 1)
-        j+=1
+        j += 1
     elif j+1 > 9:
         t = np.roll(t, -1, 1)
-        j-=1
-    return t[i-1:i+2, j-1:j+2].copy()
+        j -= 1
+    return t[i-1:i+2, j-1:j+2]
+
 
 def apply_action(m, action):
     """Return m after action has been applied to it"""
-    robot_loc = np.argwhere(m<0)[0]
+    robot_loc = np.argwhere(m < 0)[0]
     m = m.copy()
     m[tuple(robot_loc)] = -m[tuple(robot_loc)]
     if action == "RIGHT":
@@ -234,7 +239,7 @@ def apply_action(m, action):
     elif action == "LEFT":
         robot_loc[1] = (robot_loc[1]-1) % (J_MAX+1)
     elif action == "DOWN":
-        robot_loc[0] =( robot_loc[0]+1) % (I_MAX+1)
+        robot_loc[0] = (robot_loc[0]+1) % (I_MAX+1)
     elif action == "UP":
         robot_loc[0] = (robot_loc[0]-1) % (I_MAX+1)
     elif action == "PICK":
@@ -244,6 +249,7 @@ def apply_action(m, action):
             m[tuple(robot_loc)] = 2  # BUSHES
     m[tuple(robot_loc)] = -m[tuple(robot_loc)]
     return m
+
 
 def walk(m, q, length, rand=0):
     """Apply the greedy policy with respect to the given q and return the list of
@@ -256,31 +262,34 @@ def walk(m, q, length, rand=0):
         answer += [a, m]
     return answer
 
+
 def display_traj(traj):
-    global TERRAIN
-    print("Drawing traj of length %d"%len(traj))
+    global STATE
+    print("Drawing traj of length %d" % len(traj))
     if len(traj) > 0:
-        TERRAIN = traj[0]
-        #ROBOT_WINDOW.dispatch_event('on_draw')
-        #WINDOW.dispatch_event('on_draw')
+        STATE.lab = traj[0]
         pyglet.clock.schedule_once(lambda t: display_traj(traj[1:]), 0)
+
 
 def reward(s1, a, s2):
     """Test reward function : we like to pick things"""
-    if a == 'PICK' and s1[1,1] in [3,4]:  # SHROOMS or CRYSTALS
+    if a == 'PICK' and s1[1, 1] in [3, 4]:  # SHROOMS or CRYSTALS
         return 1
     else:
         return 0
 
+
 def sars(ma):
-    """Turns a list of terrain, action into a sars list suitable for Q-learning"""
+    """Turns a list of terrain, action into a sars list suitable for
+    Q-learning"""
     answer = []
-    for m1,a,m2 in zip(ma[::2], ma[1::2], ma[2::2]):
+    for m1, a, m2 in zip(ma[::2], ma[1::2], ma[2::2]):
         s1 = abs(robot_state(m1))
         s2 = abs(robot_state(m2))
         r = reward(s1, a, s2)
         answer.append([s1, a, r, s2])
     return answer
+
 
 def Q_learning(Q, sars):
     answer = Q.copy()
@@ -289,31 +298,28 @@ def Q_learning(Q, sars):
     gamma = 0.9  # PARAMETER
     d = float('inf')
     q_iter = 0
-    assert not all([r==0 for _,_,r,_ in sars])
-    while d>1. or q_iter<5:
-        old_answer = answer.copy()
+    assert not all([r == 0 for _, _, r, _ in sars])
+    while d > 1. or q_iter < 5:
         X = []
         Y = []
         for s1, a, r, s2 in sars:
             old = Q_func(s1, a)
-            Vs2 = max([Q_func(s2,a) for a in ACTIONS])
+            Vs2 = max([Q_func(s2, a) for a in ACTIONS])
             new = old + alpha*(r + gamma*Vs2 - old)
             X.append(phi(s1, a))
             Y.append(new)
         X = np.array(X)
         Y = np.array(Y)
-        #answer,_,_,_ = np.linalg.lstsq(np.array(X),
-        #                                  np.array(Y))
-        answer = np.dot(np.dot(np.linalg.pinv(np.dot(X.T,X)), X.T), Y)
-        print("NORM of omega %f"%np.linalg.norm(answer))
-        old_q = np.array([Q_func(s,a) for s,a,_,_ in sars])
+        answer = np.dot(np.dot(np.linalg.pinv(np.dot(X.T, X)), X.T), Y)
+        print("NORM of omega %f" % np.linalg.norm(answer))
+        old_q = np.array([Q_func(s, a) for s, a, _, _ in sars])
         Q_func = q_function(answer)
-        new_q = np.array([Q_func(s,a) for s,a,_,_ in sars])
+        new_q = np.array([Q_func(s, a) for s, a, _, _ in sars])
         d = np.linalg.norm(old_q-new_q)
-        old_answer = answer.copy()
-        print("Iteration %d, |Q(s,a) - Q'(s,a)| is %f"%(q_iter,d))
-        q_iter+=1
+        print("Iteration %d, |Q(s,a) - Q'(s,a)| is %f" % (q_iter, d))
+        q_iter += 1
     return answer
+
 
 def print_omega(omega):
     terrains = ["EARTH", "GRASS", "CRYSTALS", "SHROOMS"]
@@ -322,79 +328,70 @@ def print_omega(omega):
         for t in range(len(terrains)):
             print(terrains[t])
             x = omega[4*9*a + 9*t:4*9*a + 9*t+9]
-            print(x.reshape(3,3))
-
+            print(x.reshape(3, 3))
 
 
 @WINDOW.event
 def on_draw():
-    global TERRAIN
     print("Drawing main")
     WINDOW.clear()
-    draw_assets(TERRAIN, [OBJ_TEXT, STORY_TEXT, LOG_TEXT], IMAGES)
+    draw_assets(STATE)
 
-#@ROBOT_WINDOW.event
-#def on_draw():
-#    global TERRAIN
-#    print("Drawing state")
-#    ROBOT_WINDOW.clear()
-#    draw_assets(robot_state(TERRAIN), IMAGES)
 
 def train():
     """Train the robot"""
-    global omega
-    global LOG_TEXT
+    global STATE
     sars_list = []
     for i in range(10):
-        ma = walk(TERRAIN, q_function(omega), 10, rand=.5)
+        ma = walk(STATE.lab, q_function(STATE.omega), 10, rand=.5)
         sars_list += sars(ma)
     try:
-        omega = Q_learning(omega, sars_list)
+        STATE.omega = Q_learning(STATE.omega, sars_list)
     except AssertionError:
-        LOG_TEXT = [[[10, 75], "Error !"]]
+        STATE.log_text = [[[10, 75], "Error !"]]
     else:
-        LOG_TEXT = [[[10, 75], "Training successful !"]]
-    #pyglet.clock.schedule_once(lambda t: display_traj(ma[::2]), 0)
-    #TERRAIN = ma[-1]
-    print_omega(omega)
+        STATE.log_text = [[[10, 75], "Training successful !"]]
+    print_omega(STATE.omega)
+
 
 def create_train_button():
     new_button(10, 100, "Train", train)
 
+
 @WINDOW.event
 def on_key_press(symbol, modifiers):
     print(symbol)
-    global TERRAIN
+    global STATE
     if symbol == key.RIGHT:
-        TERRAIN = apply_action(TERRAIN, "RIGHT")
+        STATE.lab = apply_action(STATE.lab, "RIGHT")
     elif symbol == key.LEFT:
-        TERRAIN = apply_action(TERRAIN, "LEFT")
+        STATE.lab = apply_action(STATE.lab, "LEFT")
     elif symbol == key.DOWN:
-        TERRAIN = apply_action(TERRAIN, "DOWN")
+        STATE.lab = apply_action(STATE.lab, "DOWN")
     elif symbol == key.UP:
-        TERRAIN = apply_action(TERRAIN, "UP")
+        STATE.lab = apply_action(STATE.lab, "UP")
     elif symbol == key.SPACE:
-        TERRAIN = apply_action(TERRAIN, "PICK")
+        STATE.lab = apply_action(STATE.lab, "PICK")
     elif symbol == key.R:  # Randomize
-        TERRAIN = random_terrain()
+        STATE.lab = random_terrain()
     elif symbol == key.T:  # Train
         print('Walking')
         train()
     elif symbol == key.S:  # Step
         print("Stepping")
-        a = greedy(q_function(omega), robot_state(TERRAIN))
+        a = greedy(q_function(omega), robot_state(STATE.lab))
         print(a)
-        TERRAIN = apply_action(TERRAIN, a)
+        STATE.lab = apply_action(STATE.lab, a)
     elif symbol == key.Q:  # Quit
         print("Quitting")
         pyglet.app.exit()
-    #ROBOT_WINDOW.dispatch_event('on_draw')
+
 
 @WINDOW.event
 def on_mouse_press(x, y, button, modifiers):
-    global TERRAIN
+    global STATE
     if button == pyglet.window.mouse.LEFT:
-        for rect, cb in BUTTONS.values():
+        for rect, cb in STATE.buttons.values():
             if x >= rect[0] and y >= rect[1] and x <= rect[2] and y <= rect[3]:
                 cb()
                 return
@@ -405,14 +402,8 @@ def on_mouse_press(x, y, button, modifiers):
     i = round(iy-ix)+4
     j = round(ix+iy)-6
     if button == pyglet.window.mouse.LEFT:
-        robot_loc = np.argwhere(TERRAIN<0)[0]
-        TERRAIN[i,j] = -TERRAIN[i, j]
-        TERRAIN[tuple(robot_loc)] = -TERRAIN[tuple(robot_loc)]
+        robot_loc = np.argwhere(STATE.lab < 0)[0]
+        STATE.lab[i, j] = -STATE.lab[i, j]
+        STATE.lab[tuple(robot_loc)] = -STATE.lab[tuple(robot_loc)]
     elif button == pyglet.window.mouse.RIGHT:
-        TERRAIN[i,j] = TERRAIN[i,j] + 1 if TERRAIN[i,j] != 4 else 1
-
-pyglet.font.add_file('img/kenvector_future_thin.ttf')
-KenFuture = pyglet.font.load('KenVector Future Thin Regular')
-
-#pyglet.app.run()
-
+        STATE.lab[i, j] = STATE.lab[i, j] + 1 if STATE.lab[i, j] != 4 else 1
