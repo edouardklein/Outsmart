@@ -1,8 +1,10 @@
 import outsmart as osmt
+import level_editor as lvl
 
-osmt.STATE.lab[6, 8] = 2
-osmt.STATE.lab[0, 0] = -1
+MAP_NAME = "tutorial.map"
 
+lvl.init()
+osmt.STATE = lvl.load_state(MAP_NAME)
 
 def step_5():
     """Resetting the robot"""

@@ -44,7 +44,7 @@ class State:
     def __init__(self):
         self.lab = np.ones((I_MAX+1, J_MAX+1))  # Terrain for the lab
 
-        self.obj_func = lambda: False  # Return True when objective is reached
+        self.obj_func = lambda s: False  # Return True when objective is reached
         self.next_func = lambda: None  # Called when obj_func returns True
 
         self.obj_text = []  # Displayed in the upper right
@@ -360,6 +360,11 @@ def train():
 def create_train_button():
     new_button(10, 100, "Train", train)
 
+def create_load_button(cb, txt="Load"):
+    new_button(10, 140, txt, cb)
+
+def create_save_button(cb,txt="Save"):
+    new_button(10, 180, txt, cb)
 
 @WINDOW.event
 def on_key_press(symbol, modifiers):
