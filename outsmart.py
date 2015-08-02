@@ -154,7 +154,7 @@ def new_button(x, y, text, callback):
 
 def draw_assets(s):
     "Draw the game state"
-    if s.obj_func(STATE.lab):
+    if s.obj_func(STATE):
         s.next_func()
     draw_buttons(s.buttons)
     for t in [STATE.obj_text, STATE.story_text, STATE.log_text]:
