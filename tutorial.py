@@ -4,9 +4,25 @@ osmt.STATE.lab[6, 8] = 2
 osmt.STATE.lab[0, 0] = -1
 
 
+def step_5():
+    """Resetting the robot"""
+    osmt.script(s_text="""Good Job !""")
+
+
 def step_4():
     """Sucessful training"""
-    osmt.script(s_text="Good Job !")
+    osmt.script(s_text="""Good Job !
+Now, training Bob will succeed.
+Bob is wired to collect rocks and crystals. You can't change that.
+You can, however, change the environment and use rocks and
+crystals as a motivator to make Bob do what you want.
+When dealing with animals food is used as a reward.
+This is the same here, only with robots.""",
+                o_text="Try again to train Bob by clicking on the"
+                """"Train" button.""",
+                objective_function=lambda s: s.log_text[0][1] == "Training"
+                " successful !",
+                next_step=step_5)
 
 
 def step_3():
