@@ -154,8 +154,9 @@ def new_button(x, y, text, callback):
 
 def draw_assets(s):
     "Draw the game state"
+    print(np.argwhere(s.lab == 4))
     try:
-        if s.obj_func(STATE):
+        if s.obj_func(s):
             s.next_func()
     except:
         pass
@@ -246,10 +247,10 @@ def apply_action(m, action):
     elif action == "UP":
         robot_loc[0] = (robot_loc[0]-1) % (I_MAX+1)
     elif action == "PICK":
-        if m[tuple(robot_loc)] == 4:  # SHROOMS
-            m[tuple(robot_loc)] = 1  # EARTH
+        if m[tuple(robot_loc)] == 4:  # ROCKS
+            m[tuple(robot_loc)] = 2  # GRASS
         elif m[tuple(robot_loc)] == 3:  # CRYSTALS
-            m[tuple(robot_loc)] = 2  # BUSHES
+            m[tuple(robot_loc)] = 2  # GRASS
     m[tuple(robot_loc)] = -m[tuple(robot_loc)]
     return m
 
@@ -302,7 +303,7 @@ def Q_learning(Q, sars):
     d = float('inf')
     q_iter = 0
     assert not all([r == 0 for _, _, r, _ in sars])
-    while d > 1. or q_iter < 5:
+    while d > 1. and q_iter < 5:
         X = []
         Y = []
         for s1, a, r, s2 in sars:
@@ -382,7 +383,7 @@ def on_key_press(symbol, modifiers):
         train()
     elif symbol == key.S:  # Step
         print("Stepping")
-        a = greedy(q_function(omega), robot_state(STATE.lab))
+        a = greedy(q_function(STATE.omega), robot_state(STATE.lab))
         print(a)
         STATE.lab = apply_action(STATE.lab, a)
     elif symbol == key.Q:  # Quit
