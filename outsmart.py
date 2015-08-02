@@ -360,12 +360,11 @@ def train():
 def create_train_button():
     new_button(10, 100, "Train", train)
 
-#TODO: implement
 def create_load_button(cb, txt="Load"):
-    new_button(10, 60, txt, cb)
+    new_button(10, 140, txt, cb)
 
 def create_save_button(cb,txt="Save"):
-    new_button(10, 20, txt, cb)
+    new_button(10, 180, txt, cb)
 
 @WINDOW.event
 def on_key_press(symbol, modifiers):
