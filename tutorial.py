@@ -1,12 +1,26 @@
 import outsmart as osmt
+import numpy as np
 
 osmt.STATE.lab[6, 8] = 2
 osmt.STATE.lab[0, 0] = -1
 
 
-def step_5():
+def step_6():
     """Resetting the robot"""
-    osmt.script(s_text="""Good Job !""")
+    osmt.script(s_text="""Well this is underwhelming, but the lab setting was not
+very interesting to begin with.
+Let's reset Bob.""")
+
+
+def step_5():
+    """Trying the policy out"""
+    osmt.script(s_text="""Good Job !
+Let's see what Bob has learnt by stepping through its new-found "policy".""",
+                o_text="""Repeatedly press [s] on your keyboard to step through Bob's actions
+until Bob collects the rocks.
+If it doesnt work, you may have to train it again and then press [s]""",
+                objective_function=lambda s: len(np.argwhere(s.lab == 4)) == 0,
+                next_step=step_6)
 
 
 def step_4():
