@@ -47,7 +47,7 @@ class State:
         self.obj_func = lambda: False  # Return True when objective is reached
         self.next_func = lambda: None  # Called when obj_func returns True
 
-        self.obj_texts = []  # Displayed in the upper right
+        self.obj_text = []  # Displayed in the upper right
         self.story_text = []  # Displayed in the upper left
         self.log_text = []  # Displayed below the train button
 
