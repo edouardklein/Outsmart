@@ -10,6 +10,7 @@ import math
 import random
 import copy
 import dill as pickle
+import base64
 
 TILE_SIZE_X = 64
 TILE_SIZE_Y = 32
@@ -98,10 +99,20 @@ class State:
 
 STATE = State()
 
+def encode_nparray(a):
+    return [str(a.dtype), base64.b64encode(a), a.shape]
+
+def decode_nparray(enc):
+    a = np.frombuffer(base64.decodestring(enc[1]), np.dtype(enc[0]))
+    a = a.reshape(enc[2])
+    return a
+
 
 def load_state(filename):
+    s = State()
     with open(filename, 'rb') as load_file:
-        s = pickle.load(load_file)
+        s.lab = decode_nparray(pickle.load(load_file))
+        s.wild = decode_nparray(pickle.load(load_file))
     return s
 
 
@@ -113,11 +124,10 @@ def load_cb():
 
 
 def save_state(s, filename):
-    le = s.level_editor
-    s.level_editor = False
     with open(filename, 'wb') as save_file:
-        pickle.dump(s, save_file)
-    s.level_editor = le
+        pickle.dump(encode_nparray(s.lab), save_file, protocol=0)
+        pickle.dump(encode_nparray(s.wild), save_file, protocol=0)
+    
 
 
 def save_cb():

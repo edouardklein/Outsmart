@@ -1,9 +1,13 @@
+#!/usr/bin/env python3
 import outsmart as osmt
 import numpy as np
+import os.path
 
-MAP_NAME = "maps/tutorial.map"
+map_name = "tutorial.map"
 
-osmt.STATE = osmt.load_state(MAP_NAME)
+lvl_directory = os.path.dirname(os.path.abspath(__file__))
+
+osmt.STATE = osmt.load_state(lvl_directory + "/" + map_name)
 
 # osmt.STATE.lab[6,8] = 2
 
