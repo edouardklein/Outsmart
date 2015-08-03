@@ -6,9 +6,9 @@ from pyglet.window import key
 import numpy as np
 import numpy.random as nprand
 from itertools import zip_longest
+import copy
 import math
 import random
-import copy
 import dill as pickle
 import base64
 
@@ -99,8 +99,10 @@ class State:
 
 STATE = State()
 
+
 def encode_nparray(a):
     return [str(a.dtype), base64.b64encode(a), a.shape]
+
 
 def decode_nparray(enc):
     a = np.frombuffer(base64.decodestring(enc[1]), np.dtype(enc[0]))
@@ -109,7 +111,7 @@ def decode_nparray(enc):
 
 
 def load_state(filename):
-    s = State()
+    s = copy.deepcopy(STATE)
     with open(filename, 'rb') as load_file:
         s.lab = decode_nparray(pickle.load(load_file))
         s.wild = decode_nparray(pickle.load(load_file))
@@ -127,7 +129,6 @@ def save_state(s, filename):
     with open(filename, 'wb') as save_file:
         pickle.dump(encode_nparray(s.lab), save_file, protocol=0)
         pickle.dump(encode_nparray(s.wild), save_file, protocol=0)
-    
 
 
 def save_cb():
@@ -509,8 +510,9 @@ def on_key_press(symbol, modifiers):
 def move_robot(m, i, j):
     """Return the m matrix after the robot has been moved to i,j"""
     answer = np.abs(m.copy())
-    answer[i,j] = -answer[i,j]
+    answer[i, j] = -answer[i, j]
     return answer
+
 
 @WINDOW.event
 def on_mouse_press(x, y, button, modifiers):
