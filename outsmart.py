@@ -10,6 +10,7 @@ import math
 import random
 import copy
 import dill as pickle
+import base64
 
 TILE_SIZE_X = 64
 TILE_SIZE_Y = 32
@@ -91,8 +92,10 @@ STATE = State()
 
 
 def load_state(filename):
+    s = State()
     with open(filename, 'rb') as load_file:
-        s = pickle.load(load_file)
+        s.lab = pickle.load(load_file)
+        s.wild = pickle.load(load_file)
     return s
 
 
@@ -104,11 +107,10 @@ def load_cb():
 
 
 def save_state(s, filename):
-    le = s.level_editor
-    s.level_editor = False
     with open(filename, 'wb') as save_file:
-        pickle.dump(s, save_file)
-    s.level_editor = le
+        pickle.dump(s.lab, save_file, protocol=0)
+        pickle.dump(s.wild, save_file, protocol=0)
+    
 
 
 def save_cb():
