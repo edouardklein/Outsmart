@@ -414,4 +414,7 @@ def on_mouse_press(x, y, button, modifiers):
         STATE.lab[i, j] = -STATE.lab[i, j]
         STATE.lab[tuple(robot_loc)] = -STATE.lab[tuple(robot_loc)]
     elif button == pyglet.window.mouse.RIGHT:
-        STATE.lab[i, j] = STATE.lab[i, j] + 1 if STATE.lab[i, j] != 4 else 1
+        if STATE.lab[i, j] < 0:
+            STATE.lab[i, j] = STATE.lab[i, j] - 1 if STATE.lab[i, j] != -4 else -1
+        else:
+            STATE.lab[i, j] = STATE.lab[i, j] + 1 if STATE.lab[i, j] != 4 else 1
