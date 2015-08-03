@@ -483,6 +483,12 @@ def on_key_press(symbol, modifiers):
         train()
 
 
+def move_robot(m, i, j):
+    """Return the m matrix after the robot has been moved to i,j"""
+    answer = np.abs(m.copy())
+    answer[i,j] = -answer[i,j]
+    return answer
+
 @WINDOW.event
 def on_mouse_press(x, y, button, modifiers):
     global STATE
@@ -502,9 +508,7 @@ def on_mouse_press(x, y, button, modifiers):
     if i not in range(10) or j not in range(10):
         return
     if button == pyglet.window.mouse.LEFT:
-        robot_loc = np.argwhere(STATE.lab < 0)[0]
-        STATE.terrain()[i, j] = -STATE.terrain()[i, j]
-        STATE.terrain()[tuple(robot_loc)] = -STATE.terrain()[tuple(robot_loc)]
+        STATE.set_terrain(move_robot(STATE.terrain(), i, j))
     elif button == pyglet.window.mouse.RIGHT:
         if STATE.terrain()[i, j] < 0:
             STATE.terrain()[i, j] = STATE.terrrain()[i, j] - 1 if STATE.terrain()[i, j] != -4 else -1
