@@ -100,7 +100,7 @@ def decode_nparray(enc):
 
 
 def load_state(filename):
-    s = State()
+    s = copy.copy(STATE)
     with open(filename, 'rb') as load_file:
         s.lab = decode_nparray(pickle.load(load_file))
         s.wild = decode_nparray(pickle.load(load_file))
@@ -521,6 +521,6 @@ def on_mouse_press(x, y, button, modifiers):
         STATE.set_terrain(move_robot(STATE.terrain(), i, j))
     elif button == pyglet.window.mouse.RIGHT:
         if STATE.terrain()[i, j] < 0:
-            STATE.terrain()[i, j] = STATE.terrrain()[i, j] - 1 if STATE.terrain()[i, j] != -4 else -1
+            STATE.terrain()[i, j] = STATE.terrain()[i, j] - 1 if STATE.terrain()[i, j] != -4 else -1
         else:
             STATE.terrain()[i, j] = STATE.terrain()[i, j] + 1 if STATE.terrain()[i, j] != 4 else 1
