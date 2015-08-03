@@ -43,9 +43,26 @@ ACTIONS = ["UP", "DOWN", "LEFT", "RIGHT", "PICK"]
 
 
 class State:
+    def set_lab(self, m):
+        self.lab = m
+
+    def get_lab(self):
+        return self.lab
+
+    def set_wild(self, m):
+        self.wild = m
+
+    def get_wild(self):
+        return self.wild
+
     def __init__(self):
         self.lab = np.ones((I_MAX+1, J_MAX+1))  # Terrain for the lab
         self.lab[0, 0] = -1
+
+        self.wild = self.lab.copy()
+
+        self.terrain = self.get_lab
+        self.set_terrain = self.set_lab
 
         self.obj_func = lambda s: False  # Return True when objective
         # is reached
@@ -62,8 +79,12 @@ class State:
         self.omega = np.zeros(4*9*len(ACTIONS))  # Paramters for the Q-function
         self.active_ui = {"Train": True,
                           "Reset": True,
+                          "Lab": False,
+                          "Wild": True,
                           "Load": False,
                           "Save": False}
+
+        self.level_editor = False
 
 
 STATE = State()
@@ -83,8 +104,11 @@ def load_cb():
 
 
 def save_state(s, filename):
+    le = s.level_editor
+    s.level_editor = False
     with open(filename, 'wb') as save_file:
         pickle.dump(s, save_file)
+    s.level_editor = le
 
 
 def save_cb():
@@ -96,7 +120,7 @@ def train():
     global STATE
     sars_list = []
     for i in range(10):
-        ma = walk(STATE.lab, q_function(STATE.omega), 10, rand=.5)
+        ma = walk(STATE.terrain(), q_function(STATE.omega), 10, rand=.5)
         sars_list += sars(ma)
     try:
         STATE.omega = Q_learning(STATE.omega, sars_list)
@@ -111,12 +135,37 @@ def reset():
     """Reset the Q-function of the robot"""
     global STATE
     STATE.omega = np.zeros(4*9*len(ACTIONS))
+    STATE.log_text = [[[10, 75], "Bob has been reset !"]]
+
+
+def go_wild():
+    """Whoohoo GO WILD !"""
+    global STATE
+    STATE.terrain = STATE.get_wild
+    STATE.set_terrain = STATE.set_wild
+    STATE.active_ui["Wild"] = False
+    STATE.active_ui["Lab"] = True
+    STATE.active_ui["Train"] = False
+    STATE.active_ui["Reset"] = False
+
+
+def go_lab():
+    """Go back to the lab"""
+    global STATE
+    STATE.terrain = STATE.get_lab
+    STATE.set_terrain = STATE.set_lab
+    STATE.active_ui["Wild"] = True
+    STATE.active_ui["Lab"] = False
+    STATE.active_ui["Train"] = True
+    STATE.active_ui["Reset"] = True
 
 
 for x, y, text, cb in [[10, 20, "Reset", reset],
                        [10, 100, "Train", train],
                        [10, 140, "Load", load_cb],
-                       [10, 180, "Save", save_cb]]:
+                       [10, 180, "Save", save_cb],
+                       [900, 20, "Lab", go_lab],
+                       [900, 20, "Wild", go_wild]]:
     pixel_length = len(text)*10.5
     STATE.buttons[text] = [[x, y,
                            x+12+math.ceil(pixel_length//16)*16,
@@ -215,11 +264,10 @@ def new_button(x, y, text, callback):
 
 def draw_assets(s):
     "Draw the game state"
-    print(np.argwhere(s.lab == 4))
     draw_buttons({k: s.buttons[k] for k in s.buttons if s.active_ui[k]})
     for t in [STATE.obj_text, STATE.story_text, STATE.log_text]:
         draw_text(t)
-    m = s.lab
+    m = s.terrain()
     for i in range(0, m.shape[0]):
         for j in range(0, m.shape[1]):
             x, y = ij2xy(m, i, j)
@@ -327,7 +375,7 @@ def display_traj(traj):
     global STATE
     print("Drawing traj of length %d" % len(traj))
     if len(traj) > 0:
-        STATE.lab = traj[0]
+        STATE.set_terrain(traj[0])
         pyglet.clock.schedule_once(lambda t: display_traj(traj[1:]), 0)
 
 
@@ -404,35 +452,35 @@ def on_draw():
     draw_assets(STATE)
 
 
-
-
 @WINDOW.event
 def on_key_press(symbol, modifiers):
     print(symbol)
     global STATE
-    if symbol == key.RIGHT:
-        STATE.lab = apply_action(STATE.lab, "RIGHT")
-    elif symbol == key.LEFT:
-        STATE.lab = apply_action(STATE.lab, "LEFT")
-    elif symbol == key.DOWN:
-        STATE.lab = apply_action(STATE.lab, "DOWN")
-    elif symbol == key.UP:
-        STATE.lab = apply_action(STATE.lab, "UP")
-    elif symbol == key.SPACE:
-        STATE.lab = apply_action(STATE.lab, "PICK")
-    elif symbol == key.R:  # Randomize
-        STATE.lab = random_terrain()
-    elif symbol == key.T:  # Train
-        print('Walking')
-        train()
-    elif symbol == key.S:  # Step
+    if symbol == key.S:  # Step
         print("Stepping")
         a = greedy(q_function(STATE.omega), robot_state(STATE.lab))
         print(a)
-        STATE.lab = apply_action(STATE.lab, a)
+        STATE.set_terrain(apply_action(STATE.terrain(), a))
     elif symbol == key.Q:  # Quit
         print("Quitting")
         pyglet.app.exit()
+    if STATE.terrain == STATE.get_wild and not STATE.level_editor:
+        return  # Deactivate the next keys when in the wild
+    if symbol == key.RIGHT:
+        STATE.set_terrain(apply_action(STATE.terrain, "RIGHT"))
+    elif symbol == key.LEFT:
+        STATE.set_terrain(apply_action(STATE.terrain, "LEFT"))
+    elif symbol == key.DOWN:
+        STATE.set_terrain(apply_action(STATE.lab, "DOWN"))
+    elif symbol == key.UP:
+        STATE.set_terrain(apply_action(STATE.lab, "UP"))
+    elif symbol == key.SPACE:
+        STATE.set_terrain(apply_action(STATE.lab, "PICK"))
+    elif symbol == key.R:  # Randomize
+        STATE.set_terrain(random_terrain())
+    elif symbol == key.T:  # Train
+        print('Walking')
+        train()
 
 
 @WINDOW.event
@@ -443,6 +491,8 @@ def on_mouse_press(x, y, button, modifiers):
             if x >= rect[0] and y >= rect[1] and x <= rect[2] and y <= rect[3]:
                 cb()
                 return
+    if STATE.terrain == STATE.get_wild and not STATE.level_editor:
+        return  # Deactivate terrain modifs when in the wild
     ix = x
     iy = ((2*(J_MAX+1)+2)*TILE_SIZE_Y-y)
     ix = ix / TILE_SIZE_X / 2
@@ -453,10 +503,10 @@ def on_mouse_press(x, y, button, modifiers):
         return
     if button == pyglet.window.mouse.LEFT:
         robot_loc = np.argwhere(STATE.lab < 0)[0]
-        STATE.lab[i, j] = -STATE.lab[i, j]
-        STATE.lab[tuple(robot_loc)] = -STATE.lab[tuple(robot_loc)]
+        STATE.terrain()[i, j] = -STATE.terrain()[i, j]
+        STATE.terrain()[tuple(robot_loc)] = -STATE.terrain()[tuple(robot_loc)]
     elif button == pyglet.window.mouse.RIGHT:
-        if STATE.lab[i, j] < 0:
-            STATE.lab[i, j] = STATE.lab[i, j] - 1 if STATE.lab[i, j] != -4 else -1
+        if STATE.terrain()[i, j] < 0:
+            STATE.terrain()[i, j] = STATE.terrrain()[i, j] - 1 if STATE.terrain()[i, j] != -4 else -1
         else:
-            STATE.lab[i, j] = STATE.lab[i, j] + 1 if STATE.lab[i, j] != 4 else 1
+            STATE.terrain()[i, j] = STATE.terrain()[i, j] + 1 if STATE.terrain()[i, j] != 4 else 1

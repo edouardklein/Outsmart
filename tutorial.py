@@ -3,9 +3,9 @@ import numpy as np
 
 MAP_NAME = "maps/tutorial.map"
 
-# osmt.STATE = osmt.load_state(MAP_NAME)
+osmt.STATE = osmt.load_state(MAP_NAME)
 
-osmt.STATE.lab[6,8] = 2
+# osmt.STATE.lab[6,8] = 2
 
 def step_8():
     """The wild is harsh"""
@@ -93,6 +93,7 @@ This will allow you to train him like you would a dog or a rat.""",
                 next_step=step_3)
 
 
+osmt.go_lab()
 osmt.STATE.active_ui = {k:False for k in osmt.STATE.active_ui}
 osmt.script(s_text="""This is your lab.
 The blue robot is a test robot.
