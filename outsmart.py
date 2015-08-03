@@ -409,6 +409,8 @@ def on_mouse_press(x, y, button, modifiers):
     iy = iy / TILE_SIZE_Y / 2 - .2
     i = round(iy-ix)+4
     j = round(ix+iy)-6 #TGCM!
+    if not i in range(10) or not j in range(10):
+        return
     if button == pyglet.window.mouse.LEFT:
         robot_loc = np.argwhere(STATE.lab < 0)[0]
         STATE.lab[i, j] = -STATE.lab[i, j]
