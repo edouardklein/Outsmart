@@ -362,6 +362,12 @@ def create_train_button():
     new_button(10, 100, "Train", train)
 
 
+def reset():
+    """Reset the Q-function of the robot"""
+    global STATE
+    STATE.omega = np.zeros(4*9*len(ACTIONS))
+
+
 @WINDOW.event
 def on_key_press(symbol, modifiers):
     print(symbol)
