@@ -467,15 +467,15 @@ def on_key_press(symbol, modifiers):
     if STATE.terrain == STATE.get_wild and not STATE.level_editor:
         return  # Deactivate the next keys when in the wild
     if symbol == key.RIGHT:
-        STATE.set_terrain(apply_action(STATE.terrain, "RIGHT"))
+        STATE.set_terrain(apply_action(STATE.terrain(), "RIGHT"))
     elif symbol == key.LEFT:
-        STATE.set_terrain(apply_action(STATE.terrain, "LEFT"))
+        STATE.set_terrain(apply_action(STATE.terrain(), "LEFT"))
     elif symbol == key.DOWN:
-        STATE.set_terrain(apply_action(STATE.lab, "DOWN"))
+        STATE.set_terrain(apply_action(STATE.terrain(), "DOWN"))
     elif symbol == key.UP:
-        STATE.set_terrain(apply_action(STATE.lab, "UP"))
+        STATE.set_terrain(apply_action(STATE.terrain(), "UP"))
     elif symbol == key.SPACE:
-        STATE.set_terrain(apply_action(STATE.lab, "PICK"))
+        STATE.set_terrain(apply_action(STATE.terrain(), "PICK"))
     elif symbol == key.R:  # Randomize
         STATE.set_terrain(random_terrain())
     elif symbol == key.T:  # Train
