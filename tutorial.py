@@ -1,9 +1,11 @@
 import outsmart as osmt
 import numpy as np
+import level_editor as lvl
 
-osmt.STATE.lab[6, 8] = 2
-osmt.STATE.lab[0, 0] = -1
+MAP_NAME = "tutorial.map"
 
+lvl.init()
+osmt.STATE = lvl.load_state(MAP_NAME)
 
 def step_6():
     """Resetting the robot"""
@@ -19,7 +21,7 @@ Let's see what Bob has learnt by stepping through its new-found "policy".""",
                 o_text="""Repeatedly press [s] on your keyboard to step through Bob's actions
 until Bob collects the rocks.
 If it doesnt work, you may have to train it again and then press [s]""",
-                objective_function=lambda s: len(np.argwhere(s.lab == 4)) == 0,
+                objective_function=lambda s: len(np.argwhere(np.abs(s.lab) == 4)) == 0,
                 next_step=step_6)
 
 

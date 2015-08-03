@@ -44,10 +44,10 @@ class State:
     def __init__(self):
         self.lab = np.ones((I_MAX+1, J_MAX+1))  # Terrain for the lab
 
-        self.obj_func = lambda: False  # Return True when objective is reached
+        self.obj_func = lambda s: False  # Return True when objective is reached
         self.next_func = lambda: None  # Called when obj_func returns True
 
-        self.obj_texts = []  # Displayed in the upper right
+        self.obj_text = []  # Displayed in the upper right
         self.story_text = []  # Displayed in the upper left
         self.log_text = []  # Displayed below the train button
 
@@ -361,6 +361,11 @@ def train():
 def create_train_button():
     new_button(10, 100, "Train", train)
 
+def create_load_button(cb, txt="Load"):
+    new_button(10, 140, txt, cb)
+
+def create_save_button(cb,txt="Save"):
+    new_button(10, 180, txt, cb)
 
 def reset():
     """Reset the Q-function of the robot"""
@@ -411,9 +416,14 @@ def on_mouse_press(x, y, button, modifiers):
     iy = iy / TILE_SIZE_Y / 2 - .2
     i = round(iy-ix)+4
     j = round(ix+iy)-6 #TGCM!
+    if not i in range(10) or not j in range(10):
+        return
     if button == pyglet.window.mouse.LEFT:
         robot_loc = np.argwhere(STATE.lab < 0)[0]
         STATE.lab[i, j] = -STATE.lab[i, j]
         STATE.lab[tuple(robot_loc)] = -STATE.lab[tuple(robot_loc)]
     elif button == pyglet.window.mouse.RIGHT:
-        STATE.lab[i, j] = STATE.lab[i, j] + 1 if STATE.lab[i, j] != 4 else 1
+        if STATE.lab[i, j] < 0:
+            STATE.lab[i, j] = STATE.lab[i, j] - 1 if STATE.lab[i, j] != -4 else -1
+        else:
+            STATE.lab[i, j] = STATE.lab[i, j] + 1 if STATE.lab[i, j] != 4 else 1
