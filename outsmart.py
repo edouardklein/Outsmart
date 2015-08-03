@@ -29,6 +29,7 @@ EARTH = pyglet.image.load('img/earth.png')
 GRASS = pyglet.image.load('img/grass.png')
 CRYSTALS = pyglet.image.load('img/crystals.png')
 ROCKS = pyglet.image.load('img/rocks.png')
+TRAP = pyglet.image.load('img/trap.png')
 ROBOT = pyglet.image.load('img/robot_blue_right.png')
 BUTTON_LEFT = pyglet.image.load('img/button_left.png')
 BUTTON_MID = pyglet.image.load('img/button_mid.png')
@@ -37,9 +38,15 @@ IMAGES = {1: EARTH,
           2: GRASS,
           3: CRYSTALS,
           4: ROCKS,
+          5: TRAP,
           -1: ROBOT}  # -2 robot & shrooms, -2 robots and berries, etc.
 
 ACTIONS = ["UP", "DOWN", "LEFT", "RIGHT", "PICK"]
+
+
+def standard_vitctory():
+    """FIXME: Send back to the main menu, or something"""
+    story_text("VICTORY !\nYou won !")
 
 
 class State:
@@ -85,6 +92,8 @@ class State:
                           "Save": False}
 
         self.level_editor = False
+
+        self.victory = standard_victory
 
 
 STATE = State()
@@ -185,6 +194,7 @@ def random_terrain():
 def phi(s, a):
     """Feature vector on the state-action space"""
     s = abs(s).reshape(-1)
+    s = np.array([c if c != 5 else 2 for c in s])
     answer = np.zeros(4*9*len(ACTIONS))
     start = 4*9*ACTIONS.index(a)
     answer[start:start+9] = (s == 1)*1.
@@ -444,6 +454,9 @@ def on_draw():
     global STATE
     print("Drawing main")
     WINDOW.clear()
+    robot_loc = np.argwhere(STATE.terrain() < 0)[0]
+    if STATE.terrain()[tuple(robot_loc)] == -5:  # TRAP
+        STATE.victory()
     try:
         if STATE.obj_func(STATE):
             STATE.next_func()
@@ -511,6 +524,6 @@ def on_mouse_press(x, y, button, modifiers):
         STATE.set_terrain(move_robot(STATE.terrain(), i, j))
     elif button == pyglet.window.mouse.RIGHT:
         if STATE.terrain()[i, j] < 0:
-            STATE.terrain()[i, j] = STATE.terrrain()[i, j] - 1 if STATE.terrain()[i, j] != -4 else -1
+            STATE.terrain()[i, j] = STATE.terrrain()[i, j] - 1 if STATE.terrain()[i, j] != -5 else -1
         else:
-            STATE.terrain()[i, j] = STATE.terrain()[i, j] + 1 if STATE.terrain()[i, j] != 4 else 1
+            STATE.terrain()[i, j] = STATE.terrain()[i, j] + 1 if STATE.terrain()[i, j] != 5 else 1
