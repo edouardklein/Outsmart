@@ -45,7 +45,7 @@ IMAGES = {1: EARTH,
 ACTIONS = ["UP", "DOWN", "LEFT", "RIGHT", "PICK"]
 
 
-def standard_vitctory():
+def standard_victory():
     """FIXME: Send back to the main menu, or something"""
     story_text("VICTORY !\nYou won !")
 
@@ -534,6 +534,6 @@ def on_mouse_press(x, y, button, modifiers):
         STATE.set_terrain(move_robot(STATE.terrain(), i, j))
     elif button == pyglet.window.mouse.RIGHT:
         if STATE.terrain()[i, j] < 0:
-            STATE.terrain()[i, j] = STATE.terrrain()[i, j] - 1 if STATE.terrain()[i, j] != -5 else -1
+            STATE.terrain()[i, j] = STATE.terrain()[i, j] - 1 if STATE.terrain()[i, j] != -5 else -1
         else:
             STATE.terrain()[i, j] = STATE.terrain()[i, j] + 1 if STATE.terrain()[i, j] != 5 else 1
