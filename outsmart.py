@@ -99,18 +99,22 @@ def decode_nparray(enc):
     return a
 
 
-def load_state(filename):
-    s = copy.copy(STATE)
-    with open(filename, 'rb') as load_file:
-        s.lab = decode_nparray(pickle.load(load_file))
-        s.wild = decode_nparray(pickle.load(load_file))
+def load_state(s, filename):
+    try:
+        with open(filename, 'rb') as load_file:
+            s.lab = decode_nparray(pickle.load(load_file))
+            s.lab.flags.writeable = True
+            s.wild = decode_nparray(pickle.load(load_file))
+            s.wild.flags.writeable = True
+    except:
+        pass
     return s
 
 
 def load_cb():
     global STATE
     fn = STATE.filename
-    STATE = load_state(STATE.filename)
+    STATE = load_state(STATE, STATE.filename)
     STATE.filename = fn
 
 
