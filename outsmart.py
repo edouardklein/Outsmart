@@ -8,6 +8,8 @@ import numpy.random as nprand
 from itertools import zip_longest
 import math
 import random
+import copy
+import dill as pickle
 
 TILE_SIZE_X = 64
 TILE_SIZE_Y = 32
@@ -43,8 +45,10 @@ ACTIONS = ["UP", "DOWN", "LEFT", "RIGHT", "PICK"]
 class State:
     def __init__(self):
         self.lab = np.ones((I_MAX+1, J_MAX+1))  # Terrain for the lab
+        self.lab[0, 0] = -1
 
-        self.obj_func = lambda s: False  # Return True when objective is reached
+        self.obj_func = lambda s: False  # Return True when objective
+        # is reached
         self.next_func = lambda: None  # Called when obj_func returns True
 
         self.obj_text = []  # Displayed in the upper right
@@ -53,10 +57,70 @@ class State:
 
         self.buttons = {}
 
+        self.filename = "current_mapfile.map"
+
         self.omega = np.zeros(4*9*len(ACTIONS))  # Paramters for the Q-function
+        self.active_ui = {"Train": True,
+                          "Reset": True,
+                          "Load": False,
+                          "Save": False}
 
 
 STATE = State()
+
+
+def load_state(filename):
+    with open(filename, 'rb') as load_file:
+        s = pickle.load(load_file)
+    return s
+
+
+def load_cb():
+    global STATE
+    fn = STATE.filename
+    STATE = load_state(STATE.filename)
+    STATE.filename = fn
+
+
+def save_state(s, filename):
+    with open(filename, 'wb') as save_file:
+        pickle.dump(s, save_file)
+
+
+def save_cb():
+    save_state(STATE, STATE.filename)
+
+
+def train():
+    """Train the robot"""
+    global STATE
+    sars_list = []
+    for i in range(10):
+        ma = walk(STATE.lab, q_function(STATE.omega), 10, rand=.5)
+        sars_list += sars(ma)
+    try:
+        STATE.omega = Q_learning(STATE.omega, sars_list)
+    except AssertionError:
+        STATE.log_text = [[[10, 75], "Error !"]]
+    else:
+        STATE.log_text = [[[10, 75], "Training successful !"]]
+    print_omega(STATE.omega)
+
+
+def reset():
+    """Reset the Q-function of the robot"""
+    global STATE
+    STATE.omega = np.zeros(4*9*len(ACTIONS))
+
+
+for x, y, text, cb in [[10, 20, "Reset", reset],
+                       [10, 100, "Train", train],
+                       [10, 140, "Load", load_cb],
+                       [10, 180, "Save", save_cb]]:
+    pixel_length = len(text)*10.5
+    STATE.buttons[text] = [[x, y,
+                           x+12+math.ceil(pixel_length//16)*16,
+                           y+26], cb]
 
 
 def random_terrain():
@@ -147,20 +211,12 @@ def draw_buttons(buttons):
 
 def new_button(x, y, text, callback):
     global STATE
-    pixel_length = len(text)*10.5
-    STATE.buttons[text] = [[x, y, x+12+math.ceil(pixel_length//16)*16, y+26],
-                           callback]
 
 
 def draw_assets(s):
     "Draw the game state"
     print(np.argwhere(s.lab == 4))
-    try:
-        if s.obj_func(s):
-            s.next_func()
-    except:
-        pass
-    draw_buttons(s.buttons)
+    draw_buttons({k: s.buttons[k] for k in s.buttons if s.active_ui[k]})
     for t in [STATE.obj_text, STATE.story_text, STATE.log_text]:
         draw_text(t)
     m = s.lab
@@ -337,40 +393,17 @@ def print_omega(omega):
 
 @WINDOW.event
 def on_draw():
+    global STATE
     print("Drawing main")
     WINDOW.clear()
+    try:
+        if STATE.obj_func(STATE):
+            STATE.next_func()
+    except Exception as e:
+        print(e)
     draw_assets(STATE)
 
 
-def train():
-    """Train the robot"""
-    global STATE
-    sars_list = []
-    for i in range(10):
-        ma = walk(STATE.lab, q_function(STATE.omega), 10, rand=.5)
-        sars_list += sars(ma)
-    try:
-        STATE.omega = Q_learning(STATE.omega, sars_list)
-    except AssertionError:
-        STATE.log_text = [[[10, 75], "Error !"]]
-    else:
-        STATE.log_text = [[[10, 75], "Training successful !"]]
-    print_omega(STATE.omega)
-
-
-def create_train_button():
-    new_button(10, 100, "Train", train)
-
-def create_load_button(cb, txt="Load"):
-    new_button(10, 140, txt, cb)
-
-def create_save_button(cb,txt="Save"):
-    new_button(10, 180, txt, cb)
-
-def reset():
-    """Reset the Q-function of the robot"""
-    global STATE
-    STATE.omega = np.zeros(4*9*len(ACTIONS))
 
 
 @WINDOW.event
@@ -415,8 +448,8 @@ def on_mouse_press(x, y, button, modifiers):
     ix = ix / TILE_SIZE_X / 2
     iy = iy / TILE_SIZE_Y / 2 - .2
     i = round(iy-ix)+4
-    j = round(ix+iy)-6 #TGCM!
-    if not i in range(10) or not j in range(10):
+    j = round(ix+iy)-6  # TGCM!
+    if i not in range(10) or j not in range(10):
         return
     if button == pyglet.window.mouse.LEFT:
         robot_loc = np.argwhere(STATE.lab < 0)[0]

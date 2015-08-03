@@ -1,14 +1,13 @@
 import outsmart as osmt
 import numpy as np
-import level_editor as lvl
 
-MAP_NAME = "tutorial.map"
+MAP_NAME = "maps/tutorial.map"
 
-lvl.init()
-osmt.STATE = lvl.load_state(MAP_NAME)
+osmt.STATE = osmt.load_state(MAP_NAME)
 
 def step_6():
     """Resetting the robot"""
+    osmt.STATE.active_ui["Reset"] = True
     osmt.script(s_text="""Well this is underwhelming, but the lab setting was not
 very interesting to begin with.
 Let's reset Bob.""")
@@ -62,7 +61,7 @@ multiple times on the appropriate tile.""",
 
 def step_2():
     """Frist training"""
-    osmt.create_train_button()
+    osmt.STATE.active_ui["Train"] = True
     osmt.script(s_text="""Good Job !
 You can train Bob with a state-of-the-art
 Reinforcement Learning algorithm.
@@ -71,6 +70,8 @@ This will allow you to train him like you would a dog or a rat.""",
                 objective_function=lambda s: s.log_text[0][1] == 'Error !',
                 next_step=step_3)
 
+
+osmt.STATE.active_ui = {k:False for k in osmt.STATE.active_ui}
 osmt.script(s_text="""This is your lab.
 The blue robot is a test robot.
 His name is Bob.
