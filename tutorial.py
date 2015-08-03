@@ -3,23 +3,45 @@ import numpy as np
 
 MAP_NAME = "maps/tutorial.map"
 
-osmt.STATE = osmt.load_state(MAP_NAME)
+# osmt.STATE = osmt.load_state(MAP_NAME)
+
+osmt.STATE.lab[6,8] = 2
+
+def step_8():
+    """The wild is harsh"""
+    osmt.script(s_text="""Well, this one is not Bob...""")
+
+
+def step_7():
+    """Into the wild"""
+    osmt.STATE.active_ui["Wild"] = True
+    osmt.script(s_text="""Let's see what kind of problems we will have to solve
+in the wild.""",
+                o_text="""Go into the wild by clicking on the "Wild" button.""",
+                objective_function=lambda s: s.terrain == s.get_wild,
+                next_step=step_8)
+
 
 def step_6():
     """Resetting the robot"""
     osmt.STATE.active_ui["Reset"] = True
     osmt.script(s_text="""Well this is underwhelming, but the lab setting was not
 very interesting to begin with.
-Let's reset Bob.""")
+Let's reset Bob.""",
+                o_text="""Reset Bob by clicking on the "Reset" button.""",
+                objective_function=lambda s: np.linalg.norm(s.omega)==0,
+                next_step=step_7)
 
 
 def step_5():
     """Trying the policy out"""
     osmt.script(s_text="""Good Job !
-Let's see what Bob has learnt by stepping through its new-found "policy".""",
-                o_text="""Repeatedly press [s] on your keyboard to step through Bob's actions
-until Bob collects the rocks.
-If it doesnt work, you may have to train it again and then press [s]""",
+Let's see what Bob has learnt by stepping
+through its new-found "policy".""",
+                o_text="""Repeatedly press [s] on your keyboard to step
+through Bob's actions until Bob collects the rocks.
+If it doesnt work, you may have to train Bob
+again and then press [s]""",
                 objective_function=lambda s: len(np.argwhere(np.abs(s.lab) == 4)) == 0,
                 next_step=step_6)
 
@@ -53,8 +75,8 @@ def step_3():
 In this lab setting, there is no reward
 that could let Bob know how it's doing.
 Let's change that.""",
-                o_text="""Spawn some rocks somewhere right next to Bob by right-clicking
-multiple times on the appropriate tile.""",
+                o_text="""Spawn some white rocks somewhere right next to Bob
+                by right-clicking multiple times on the appropriate tile.""",
                 objective_function=success,
                 next_step=step_4)
 
