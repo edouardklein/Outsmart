@@ -3,4 +3,5 @@ img/zip/*
 virtualenv/*
 *.pyc
 *.swp
+build/*
 
