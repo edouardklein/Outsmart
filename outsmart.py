@@ -83,6 +83,8 @@ BUTTON_LEFT = pyglet.image.load('img/button_left.png')
 BUTTON_MID = pyglet.image.load('img/button_mid.png')
 BUTTON_RIGHT = pyglet.image.load('img/button_right.png')
 
+DEFEAT_SONG = pyglet.media.load('snd/dead.mp3')
+
 ACTIONS = ["UP", "DOWN", "LEFT", "RIGHT", "PICK"]
 
 
@@ -99,8 +101,9 @@ def victorious(s):
 def default_defeat():
     """FIXME: Propose to try again"""
     global STATE
-    lost_song = pyglet.media.load('snd/dead.mp3')
-    lost_song.play()
+    if not STATE.player.playing:
+        STATE.player.queue(DEFEAT_SONG)
+        STATE.player.play()
     STATE.story_text = []
     STATE.obj_text = []
     STATE.end_text = """DEFEAT.
@@ -168,6 +171,8 @@ class State:
         self.losing = losing
         self.defeat = default_defeat
         self.selected_tile = 0
+
+        self.player = pyglet.media.Player()
 
 
 STATE = State()
