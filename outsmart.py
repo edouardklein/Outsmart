@@ -86,9 +86,24 @@ BUTTON_RIGHT = pyglet.image.load('img/button_right.png')
 ACTIONS = ["UP", "DOWN", "LEFT", "RIGHT", "PICK"]
 
 
-def standard_victory():
+def default_victory():
     """FIXME: Send back to the main menu, or something"""
     story_text("VICTORY !\nYou won !")
+
+
+def victorious(s):
+    """Return True if NotBob is on a trap"""
+    return any((s.wild % 100 == 12).reshape(-1))
+
+
+def default_defeat():
+    """FIXME: Propose to try again"""
+    story_text("DEFEAT ! You loser !")
+
+
+def losing(s):
+    """Return True if nb_resources goes past 0"""
+    return s.nb_resources > 0
 
 
 class State:
@@ -109,6 +124,8 @@ class State:
         self.lab[0, 0] = -1
 
         self.wild = self.lab.copy()
+
+        self.nb_resources = 0  # Amount of resources collected by Not-Bob
 
         self.terrain = self.get_lab
         self.set_terrain = self.set_lab
@@ -136,7 +153,10 @@ class State:
 
         self.level_editor = False
 
-        self.victory = standard_victory
+        self.victorious = victorious
+        self.victory = default_victory
+        self.losing = losing
+        self.defeat = default_defeat
         self.selected_tile = 0
 
 
@@ -525,7 +545,11 @@ def on_draw():
     print("Drawing main")
     WINDOW.clear()
     try:
-        if STATE.obj_func(STATE):
+        if STATE.victorious(STATE):
+            STATE.victory()
+        elif STATE.losing(STATE):
+            STATE.defeat()
+        elif STATE.obj_func(STATE):
             STATE.next_func()
     except Exception as e:
         print(e)
@@ -537,6 +561,12 @@ def on_mouse_motion(x, y, dx, dy):
     WINDOW.set_mouse_cursor(CURSORS[STATE.selected_tile])
 
 
+def available_resources(m):
+    """Return the number of available resources on the given map"""
+    print(m % 1000 // 100 >= 3)
+    return sum((m % 1000 // 100 >= 3).reshape(-1))
+
+
 @WINDOW.event
 def on_key_press(symbol, modifiers):
     print(symbol)
@@ -544,11 +574,16 @@ def on_key_press(symbol, modifiers):
     if symbol == key.S:  # Step
         print("Stepping")
         a = greedy(q_function(STATE.omega), robot_state(STATE.terrain()))
+        nb_old = available_resources(STATE.terrain())
         print(a)
         STATE.set_terrain(apply_action(STATE.terrain(), a))
+        if STATE.terrain == STATE.get_wild:
+            STATE.nb_resources += nb_old - available_resources(STATE.terrain())
     elif symbol == key.Q:  # Quit
         print("Quitting")
         pyglet.app.exit()
+    elif symbol == key.W:  # Wild
+        go_wild()
     if STATE.terrain == STATE.get_wild and not STATE.level_editor:
         return  # Deactivate the next keys when in the wild
     if symbol == key.RIGHT:
@@ -635,7 +670,7 @@ def on_mouse_press_game(*args):
     if button == pyglet.window.mouse.LEFT:
         STATE.set_terrain(move_robot(STATE.terrain(), i, j))
     elif button == pyglet.window.mouse.RIGHT:
-        STATE.terrain()[i, j] = STATE.terrain()[i, j] + 100 % 500
+        STATE.terrain()[i, j] = (STATE.terrain()[i, j] + 100) % 500
         if STATE.terrain()[i, j] < 100:
             STATE.terrain()[i, j] += 100
 
