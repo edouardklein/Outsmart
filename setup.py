@@ -1,10 +1,15 @@
 import cx_Freeze
+from glob import glob
 
-executables = [cx_Freeze.Executable("launch.py")]
+executables = [cx_Freeze.Executable("launch.py"), cx_Freeze.Executable("level_editor.py")]
+
+include_files = [(g, g) for g in glob("levels/*/*")]
 
 cx_Freeze.setup(name="Outsmart",
                 options={"build_exe":{"packages":["pyglet", "numpy"],
-                                      "include_files":[("levels/tutorial/tutorial.py", "levels/tutorial/tutorial.py"), ("levels/tutorial/tutorial.lab", "levels/tutorial/tutorial.lab"), ("levels/tutorial/tutorial.wild", "levels/tutorial/tutorial.wild"), "outsmart.py"]}
+                                      "includes":["outsmart"],
+                                      "include_files":include_files
+                                     }
                         },
                 executables=executables
                 )
