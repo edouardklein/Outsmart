@@ -11,12 +11,32 @@ osmt.STATE = osmt.load_state(osmt.STATE, lvl_directory + "/" + map_name)
 
 # osmt.STATE.lab[6,8] = 2
 
+
+def step_9():
+    """Back to training"""
+    osmt.script(s_text="""The red robot trusts Bob.""")
+
+
 def step_8():
     """The wild is harsh"""
+    osmt.checkpoint_now()
+    def victory():
+        """Won by chance, let's try again"""
+        osmt.STATE.story_text = []
+        osmt.STATE.obj_text = []
+        osmt.STATE.end_text="""RANDOM VICTORY.
+This will not happen everytime.
+Try again and see for yourself."""
+        osmt.STATE.active_ui = {k:False for k in osmt.STATE.active_ui}
+        osmt.STATE.active_ui["Retry"] = True
+    osmt.STATE.victory = victory
     osmt.script(s_text="""Well, this one is not Bob...
 The red robot is one of those we want to stop.
-Your goal is to trick it into going into the trap.""")
-    
+Your goal is to trick it into going into the trap (the red patch).
+Alone in the wild, the red robot will act randomly in order to
+explore its world and gather data with which to optimize
+ressource collection.""",
+                o_text="""Press [s] repeatedly to see the red robot exploring.""")
 
 
 def step_7():

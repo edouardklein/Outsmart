@@ -98,7 +98,15 @@ def victorious(s):
 
 def default_defeat():
     """FIXME: Propose to try again"""
-    story_text("DEFEAT ! You loser !")
+    global STATE
+    lost_song = pyglet.media.load('snd/dead.mp3')
+    lost_song.play()
+    STATE.story_text = []
+    STATE.obj_text = []
+    STATE.end_text = """DEFEAT.
+The robot grew in numbers and wiped out the human race."""
+    STATE.active_ui = {k: False for k in STATE.active_ui}
+    STATE.active_ui["Retry"] = True
 
 
 def losing(s):
@@ -137,6 +145,7 @@ class State:
         self.obj_text = []  # Displayed in the upper right
         self.story_text = []  # Displayed in the upper left
         self.log_text = []  # Displayed below the train button
+        self.end_text = []  # Center of screen, big
 
         self.buttons = {}
 
@@ -149,7 +158,8 @@ class State:
                           "Wild": True,
                           "Load": False,
                           "Save": False,
-                          "TileSelector": False}
+                          "TileSelector": False,
+                          "Retry": False}
 
         self.level_editor = False
 
@@ -217,6 +227,11 @@ def reset():
     STATE.log_text = [[[10, 75], "Bob has been reset !"]]
 
 
+def load_checkpoint():
+    global STATE
+    STATE = copy.deepcopy(CHECKPOINT)
+
+
 def go_wild():
     """Whoohoo GO WILD !"""
     global STATE
@@ -256,11 +271,19 @@ for x, y, uid, group_ui, text, cb in [[10, 20, "reset", "Reset",
                                       [900, 20, "laboratory", "Lab",
                                        "Lab", go_lab],
                                       [900, 20, "wilderness", "Wild",
-                                       "Wild", go_wild]]:
+                                       "Wild", go_wild],
+                                      [10, 10,
+                                       "end", "Retry",
+                                       "Retry", load_checkpoint]]:
     pixel_length = len(text)*10.5
     STATE.buttons[uid] = [[x, y,
                            x+12+math.ceil(pixel_length//16)*16,
                            y+26], group_ui, text, cb]
+
+def checkpoint_now():
+    global CHECKPOINT
+    CHECKPOINT = copy.deepcopy(STATE)
+
 
 for x, y, uid, group_ui, img, cb in [[1000, 100, "img_1", "TileSelector",
                                      nb2images(100)[0],
@@ -340,6 +363,22 @@ def draw_text(text_list):
         label.draw()
 
 
+def draw_end_text(text):
+    """Draw the text over the whole screen"""
+    l = text.split("\n")
+    label = pyglet.text.Label(l[0],
+                              font_name='KenVector Future Thin Regular',
+                              font_size=36,
+                              x=WINDOW.width//2, y=WINDOW.height//2,
+                              anchor_x='center', anchor_y='center')
+    label.draw()
+    for i, t in enumerate(l[1:]):
+        label = pyglet.text.Label(t, x=WINDOW.width//2-200,
+                                  y=WINDOW.height//2-100-i*25,
+                                  font_name='KenVector Future Thin Regular')
+        label.draw()
+
+
 # https://docs.python.org/3.4/library/itertools.html
 def grouper(iterable, n, fillvalue=" "):
     "Collect data into fixed-length chunks or blocks"
@@ -381,6 +420,8 @@ def draw_assets(s):
         for j in range(0, m.shape[1]):
             x, y = ij2xy(m, i, j)
             draw_sprite(m[i, j], x, y)
+    if STATE.end_text:
+        draw_end_text(STATE.end_text)
 
 
 def xy_text(starting_xy, text):
@@ -584,8 +625,8 @@ def on_key_press(symbol, modifiers):
         pyglet.app.exit()
     elif symbol == key.W:  # Wild
         go_wild()
-    if STATE.terrain == STATE.get_wild and not STATE.level_editor:
-        return  # Deactivate the next keys when in the wild
+    #if STATE.terrain == STATE.get_wild and not STATE.level_editor:
+    #    return  # Deactivate the next keys when in the wild
     if symbol == key.RIGHT:
         STATE.set_terrain(apply_action(STATE.terrain(), "RIGHT"))
     elif symbol == key.LEFT:
