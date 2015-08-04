@@ -635,11 +635,9 @@ def on_mouse_press_game(*args):
     if button == pyglet.window.mouse.LEFT:
         STATE.set_terrain(move_robot(STATE.terrain(), i, j))
     elif button == pyglet.window.mouse.RIGHT:
-        reminder = STATE.terrain()[i, j] % 100
         STATE.terrain()[i, j] = STATE.terrain()[i, j] + 100 % 500
-        if STATE.terrain()[i, j] == 0:
-            STATE.terrain()[i, j] = 100
-        STATE.terrain()[i, j] += reminder
+        if STATE.terrain()[i, j] < 100:
+            STATE.terrain()[i, j] += 100
 
 
 @WINDOW.event
