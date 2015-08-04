@@ -90,7 +90,12 @@ ACTIONS = ["UP", "DOWN", "LEFT", "RIGHT", "PICK"]
 
 def default_victory():
     """FIXME: Send back to the main menu, or something"""
-    story_text("VICTORY !\nYou won !")
+    STATE.story_text = []
+    STATE.obj_text = []
+    STATE.end_text = """VICTORY !
+You got one robot, try the other levels !"""
+    STATE.active_ui = {k: False for k in STATE.active_ui}
+    STATE.active_ui["Retry"] = True
 
 
 def victorious(s):
@@ -148,7 +153,7 @@ class State:
         self.obj_text = []  # Displayed in the upper right
         self.story_text = []  # Displayed in the upper left
         self.log_text = []  # Displayed below the train button
-        self.end_text = []  # Center of screen, big
+        self.end_text = ""  # Center of screen, big
 
         self.buttons = {}
 
@@ -278,7 +283,7 @@ for x, y, uid, group_ui, text, cb in [[10, 20, "reset", "Reset",
                                       [900, 20, "wilderness", "Wild",
                                        "Wild", go_wild],
                                       [10, 10,
-                                       "end", "Retry",
+                                       "retry", "Retry",
                                        "Retry", load_checkpoint]]:
     pixel_length = len(text)*10.5
     STATE.buttons[uid] = [[x, y,

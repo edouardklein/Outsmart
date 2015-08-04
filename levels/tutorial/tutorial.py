@@ -12,9 +12,48 @@ osmt.STATE = osmt.load_state(osmt.STATE, lvl_directory + "/" + map_name)
 # osmt.STATE.lab[6,8] = 2
 
 
+def step_11():
+    """WIP"""
+    osmt.script(s_text="""Time to tie it all together :
+By placing resources (rocks or crystals) and training Bob,
+teach it to follow the grassy path.
+You can reset Bob and start over if the training does not work.
+You can train mutliple times to add on to Bob's experience.
+When you feel confident, go into the wild and press see
+if you tricked the red robot.""")
+
+
+def step_10():
+    """Create the path"""
+    osmt.STATE.lab=np.loadtxt("levels/tutorial/grassy_path.lab")
+    osmt.STATE.wild=np.loadtxt("levels/tutorial/tutorial.wild")
+    osmt.STATE.victory = osmt.default_victory
+    def grassy_path(s):
+        return all(s.lab[4, 2:8] // 100 == 2)
+    osmt.script(s_text="""We have create the start of a grassy path in the lab.
+Complete it so that it looks like the one that was ahead of the
+red robot in the wild.""",
+                o_text="""Right click on the appropriate tiles to complete
+the path.""",
+                objective_function=grassy_path,
+                next_step=step_11)
+
+
 def step_9():
     """Back to training"""
-    osmt.script(s_text="""The red robot trusts Bob.""")
+    osmt.STATE.end_text = ""
+    osmt.STATE.active_ui["Retry"] = False
+    osmt.go_wild()
+    osmt.script(s_text="""Let's try again. The red robot trusts Bob.
+That is because they share the same reward function.
+The red robot thinks that if Bob has found a near-optimal policy
+for resource collection, then it can copy that policy
+and save itself the trouble of exploration.
+Let's go back to the lab and teach Bob how to
+follow a grassy path...""",
+                o_text="""Click on the "Lab" button.""",
+                objective_function=lambda s: s.terrain == s.get_lab,
+                next_step=step_10)
 
 
 def step_8():
@@ -30,6 +69,16 @@ Try again and see for yourself."""
         osmt.STATE.active_ui = {k:False for k in osmt.STATE.active_ui}
         osmt.STATE.active_ui["Retry"] = True
     osmt.STATE.victory = victory
+    def defeat():
+        """Pedagogy is the art of inflicting crushing defeats on the students"""
+        osmt.default_defeat()
+        osmt.story_text("""The wiping out of the human race
+is just a temporary setback.
+We can time travel back to before you killed us all and try again.""")
+        osmt.objective_text("""Click on the "Retry" button""")
+        osmt.STATE.nb_resources = 0
+        osmt.STATE.buttons["retry"][-1] = step_9
+    osmt.STATE.defeat = defeat
     osmt.script(s_text="""Well, this one is not Bob...
 The red robot is one of those we want to stop.
 Your goal is to trick it into going into the trap (the red patch).
@@ -128,6 +177,6 @@ His name is Bob.
 You can control its position.""",
             o_text="Click on the green patch to move the robot there.",
             objective_function=lambda s: s.lab[6, 8] % 1000 == 201,
-            next_step=step_2)
+            next_step=step_7)
 
 osmt.pyglet.app.run()
