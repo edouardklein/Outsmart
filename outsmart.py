@@ -543,7 +543,7 @@ def on_key_press(symbol, modifiers):
     global STATE
     if symbol == key.S:  # Step
         print("Stepping")
-        a = greedy(q_function(STATE.omega), robot_state(STATE.lab))
+        a = greedy(q_function(STATE.omega), robot_state(STATE.terrain()))
         print(a)
         STATE.set_terrain(apply_action(STATE.terrain(), a))
     elif symbol == key.Q:  # Quit
