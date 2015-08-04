@@ -3,7 +3,7 @@ import outsmart as osmt
 import numpy as np
 import os.path
 
-map_name = "tutorial.map"
+map_name = "tutorial"
 
 lvl_directory = os.path.dirname(os.path.abspath(__file__))
 
@@ -13,7 +13,10 @@ osmt.STATE = osmt.load_state(osmt.STATE, lvl_directory + "/" + map_name)
 
 def step_8():
     """The wild is harsh"""
-    osmt.script(s_text="""Well, this one is not Bob...""")
+    osmt.script(s_text="""Well, this one is not Bob...
+The red robot is one of those we want to stop.
+Your goal is to trick it into going into the trap.""")
+    
 
 
 def step_7():
@@ -46,7 +49,7 @@ through its new-found "policy".""",
 through Bob's actions until Bob collects the rocks.
 If it doesnt work, you may have to train Bob
 again and then press [s]""",
-                objective_function=lambda s: len(np.argwhere(np.abs(s.lab) == 4)) == 0,
+                objective_function=lambda s: len(np.argwhere(s.lab//100 == 4)) == 0,
                 next_step=step_6)
 
 
@@ -69,11 +72,11 @@ This is the same here, only with robots.""",
 def step_3():
     """Rocks spawning"""
     def success(state):
-        bob_on_patch = state.lab[6, 8] == -2
-        rock_nearby = state.lab[7, 8] == 4
-        rock_nearby = rock_nearby or state.lab[5, 8] == 4
-        rock_nearby = rock_nearby or state.lab[6, 9] == 4
-        rock_nearby = rock_nearby or state.lab[6, 7] == 4
+        bob_on_patch = state.lab[6, 8] % 10 == 1
+        rock_nearby = state.lab[7, 8] // 100 == 4
+        rock_nearby = rock_nearby or state.lab[5, 8] // 100 == 4
+        rock_nearby = rock_nearby or state.lab[6, 9] // 100 == 4
+        rock_nearby = rock_nearby or state.lab[6, 7] // 100 == 4
         return bob_on_patch and rock_nearby
     osmt.script(s_text="""Uh-oh, something went wrong :
 In this lab setting, there is no reward
@@ -104,7 +107,7 @@ The blue robot is a test robot.
 His name is Bob.
 You can control its position.""",
             o_text="Click on the green patch to move the robot there.",
-            objective_function=lambda s: s.lab[6, 8] == -2,
+            objective_function=lambda s: s.lab[6, 8] % 1000 == 201,
             next_step=step_2)
 
 osmt.pyglet.app.run()

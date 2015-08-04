@@ -9,8 +9,9 @@ from itertools import zip_longest
 import copy
 import math
 import random
-import dill as pickle
-import base64
+import glob
+import functools
+import itertools
 
 TILE_SIZE_X = 64
 TILE_SIZE_Y = 32
@@ -26,20 +27,61 @@ WINDOW.set_location(0, 0)
 
 pyglet.font.add_file('img/kenvector_future_thin.ttf')
 KenFuture = pyglet.font.load('KenVector Future Thin Regular')
-EARTH = pyglet.image.load('img/earth.png')
-GRASS = pyglet.image.load('img/grass.png')
-CRYSTALS = pyglet.image.load('img/crystals.png')
-ROCKS = pyglet.image.load('img/rocks.png')
-TRAP = pyglet.image.load('img/trap.png')
-ROBOT = pyglet.image.load('img/robot_blue_right.png')
+# The display system :
+# Each tile has a multi-digit number associated with it.
+# Each position encodes a different information.
+# The least significant digit is the presence of the robot:
+#  - 0: No robot
+#  - 1: Bob
+#  - 2: Not-Bob
+# The second digit is the presence of a trap:
+#  - 0: No trap
+#  - 1: Trap
+# The third digit from the right is the type of terrain:
+# - 0: No terrain (no use case, but I feel good knowing 0 means 'nothing')
+# - 1: bare (e.g. Earth)
+# - 2: No resources (e.g. grass)
+# - 3: Resource type 1 (e.g. Crystals)
+# - 4: Resouce type 2 (e.g. Rocks)
+# The fourth digit is the set of tiles to use (to be implemented)
+# - 0: Earth, grass, crystals, rocks
+# - 1: (not implemented yet) e.g. grass, road, house, trees
+# - 2: ...
+# A tile is a superposition of the information at each position.
+# Each position encodes things that can not be superimposed (e.g. it is not
+# possible to have both crystals and rocks on the same tiles)
+# On the other hand it is possible to have a Not-Bob on a trap on some rocks.
+# This would tile 0412
+# To draw tile 0412, either the file 0412.png exists and is displayed
+# or we build it from files that sum to 0412.png, i.e. 0410 and 0002
+
+IMAGES = {int(s[-8:-4]): pyglet.image.load(s)
+          for s in glob.glob('img/'+'[0-9]'*4+'.png')}
+
+
+@functools.lru_cache(None)
+def nb2images(number):
+    """Return the list of images one has to draw to represent the
+    given number"""
+    try:
+        return [IMAGES[number]]
+    except KeyError:
+        all_comb = sum(map(list, [itertools.combinations(IMAGES.keys(), l)
+                                  for l in [2, 3, 4]]), [])
+        comb = [c for c in all_comb if sum(c) == number][0]
+        return [IMAGES[n] for n in reversed(sorted(comb))]
+
+
+def draw_sprite(number, x, y):
+    """Draw at x,y the sprite(s) representing the given number"""
+    for im in nb2images(number):
+        sprite = pyglet.sprite.Sprite(im, x, y)
+        sprite.draw()
+
+
 BUTTON_LEFT = pyglet.image.load('img/button_left.png')
 BUTTON_MID = pyglet.image.load('img/button_mid.png')
 BUTTON_RIGHT = pyglet.image.load('img/button_right.png')
-IMAGES = {1: [EARTH],
-          2: [GRASS],
-          3: [CRYSTALS],
-          4: [ROCKS],
-          -1: [ROBOT]}  # -2 robot & shrooms, -2 robots and berries, etc.
 
 ACTIONS = ["UP", "DOWN", "LEFT", "RIGHT", "PICK"]
 
@@ -96,36 +138,15 @@ class State:
 
         self.victory = standard_victory
         self.selected_tile = 0
-        self.skin = {1:0,
-                    2:0,
-                    3:0,
-                    4:0,
-                    -1:0}
 
 
 STATE = State()
 
 
-def get_skinned_image(i):
-    global STATE
-    return IMAGES[i][STATE.skin[i]]
-
 CURSORS = {}
-for k in range(1,5):
-    CURSORS[k] = pyglet.window.ImageMouseCursor(get_skinned_image(k), 0, 0)
+for k in range(1, 5):
+    CURSORS[k] = pyglet.window.ImageMouseCursor(nb2images(k*100)[0], 0, 0)
 CURSORS[0] = WINDOW.CURSOR_DEFAULT
-
-
-
-
-def encode_nparray(a):
-    return [str(a.dtype), base64.b64encode(a), a.shape]
-
-
-def decode_nparray(enc):
-    a = np.frombuffer(base64.decodestring(enc[1]), np.dtype(enc[0]))
-    a = a.reshape(enc[2])
-    return a
 
 
 def load_state(s, filename):
@@ -204,21 +225,35 @@ def set_image_as_cursor(i):
         STATE.selected_tile = i
     return fun
 
-for x, y, uid, group_ui, text, cb in [[10, 20, "reset", "Reset", "Reset", reset],
-                       [10, 100, "train", "Train", "Train", train],
-                       [10, 140, "load_map", "Load", "Load a map", load_cb],
-                       [10, 180, "save_map", "Save", "Save current map", save_cb],
-                       [900, 20, "laboratory", "Lab", "Lab", go_lab],
-                       [900, 20, "wilderness", "Wild", "Wild", go_wild]]:
+for x, y, uid, group_ui, text, cb in [[10, 20, "reset", "Reset",
+                                       "Reset", reset],
+                                      [10, 100, "train", "Train",
+                                       "Train", train],
+                                      [10, 140, "load_map", "Load",
+                                       "Load a map", load_cb],
+                                      [10, 180, "save_map", "Save",
+                                       "Save current map", save_cb],
+                                      [900, 20, "laboratory", "Lab",
+                                       "Lab", go_lab],
+                                      [900, 20, "wilderness", "Wild",
+                                       "Wild", go_wild]]:
     pixel_length = len(text)*10.5
     STATE.buttons[uid] = [[x, y,
                            x+12+math.ceil(pixel_length//16)*16,
                            y+26], group_ui, text, cb]
 
-for x, y, uid, group_ui, img, cb in [[1000, 100, "img_1", "TileSelector", get_skinned_image(1), set_image_as_cursor(1)],
-                                    [1140, 100, "img_2", "TileSelector", get_skinned_image(2), set_image_as_cursor(2)],
-                                    [1000, 0, "img_3", "TileSelector", get_skinned_image(3), set_image_as_cursor(3)],
-                                    [1140, 0, "img_4", "TileSelector", get_skinned_image(4), set_image_as_cursor(4)]]:
+for x, y, uid, group_ui, img, cb in [[1000, 100, "img_1", "TileSelector",
+                                     nb2images(100)[0],
+                                      set_image_as_cursor(1)],
+                                     [1140, 100, "img_2", "TileSelector",
+                                      nb2images(200)[0],
+                                     set_image_as_cursor(2)],
+                                     [1000, 0, "img_3", "TileSelector",
+                                      nb2images(300)[0],
+                                     set_image_as_cursor(3)],
+                                     [1140, 0, "img_4", "TileSelector",
+                                      nb2images(400)[0],
+                                     set_image_as_cursor(4)]]:
     STATE.buttons[uid] = [[x, y, x+img.width, y+img.height], group_ui, img, cb]
 
 
@@ -227,15 +262,16 @@ def random_terrain():
     answer = np.ones((I_MAX+1, J_MAX+1))
     for i, j in zip(nprand.random_integers(0, I_MAX, 8),
                     nprand.random_integers(0, J_MAX, 8)):
-        answer[i, j] = nprand.random_integers(2, 4)
-    answer[0, 0] = -answer[0, 0]
+        answer[i, j] = nprand.random_integers(2, 4)*100
+    answer[0, 0] += 1
     return answer
 
 
 def phi(s, a):
     """Feature vector on the state-action space"""
-    s = abs(s).reshape(-1)
-    s = np.array([c if c != 5 else 2 for c in s])
+    s = s.copy().reshape(-1)
+    s = s // 100  # Extracting third digit
+    s = s % 1000
     answer = np.zeros(4*9*len(ACTIONS))
     start = 4*9*ACTIONS.index(a)
     answer[start:start+9] = (s == 1)*1.
@@ -295,7 +331,7 @@ def grouper(iterable, n, fillvalue=" "):
 def draw_buttons(buttons):
     for _, [rect, _, content, _] in buttons.items():
         x, y, max_x, max_y = rect
-        if type(content)==str:
+        if type(content) == str:
             sprite = pyglet.sprite.Sprite(BUTTON_LEFT, x=x, y=y)
             sprite.draw()
             pixel_length = len(content)*10.5
@@ -305,31 +341,26 @@ def draw_buttons(buttons):
             sprite = pyglet.sprite.Sprite(BUTTON_RIGHT, x=max_x-6,
                                           y=y)
             sprite.draw()
-            label = pyglet.text.Label(content, x=x+6, y=y+9,
-                                      font_name='KenVector Future Thin Regular')
-            label.draw()
-        else: #image button
+            lbl = pyglet.text.Label(content, x=x+6, y=y+9,
+                                    font_name='KenVector Future Thin Regular')
+            lbl.draw()
+        else:  # image button
             sprite = pyglet.sprite.Sprite(content, x=x, y=y)
             sprite.draw()
 
 
 def draw_assets(s):
     "Draw the game state"
-    draw_buttons({k: s.buttons[k] for k,[_, group_ui, _, _] in s.buttons.items() if s.active_ui[group_ui]})
+    draw_buttons({k: s.buttons[k]
+                  for k, [_, group_ui, _, _] in s.buttons.items()
+                  if s.active_ui[group_ui]})
     for t in [STATE.obj_text, STATE.story_text, STATE.log_text]:
         draw_text(t)
     m = s.terrain()
     for i in range(0, m.shape[0]):
         for j in range(0, m.shape[1]):
             x, y = ij2xy(m, i, j)
-            sprite = pyglet.sprite.Sprite(get_skinned_image(1), x=x, y=y)
-            sprite.draw()
-            if abs(m[i, j]) > 1:
-                sprite = pyglet.sprite.Sprite(get_skinned_image(abs(m[i, j])), x=x, y=y)
-                sprite.draw()
-            if m[i, j] < 0:
-                sprite = pyglet.sprite.Sprite(get_skinned_image(-1), x=x, y=y)
-                sprite.draw()
+            draw_sprite(m[i, j], x, y)
 
 
 def xy_text(starting_xy, text):
@@ -372,7 +403,7 @@ def script(s_text="", o_text="",
 def robot_state(terrain):
     """Return the state visible to a robot"""
     t = terrain.copy()
-    i, j = np.argwhere(t < 0)[0]
+    i, j = np.argwhere(t % 10 != 0)[0]
     if i-1 < 0:
         t = np.roll(t, 1, 0)
         i += 1
@@ -389,24 +420,22 @@ def robot_state(terrain):
 
 
 def apply_action(m, action):
-    """Return m after action has been applied to it"""
-    robot_loc = np.argwhere(m < 0)[0]
-    m = m.copy()
-    m[tuple(robot_loc)] = -m[tuple(robot_loc)]
+    """Return a copy of m after action has been applied to it"""
     if action == "RIGHT":
-        robot_loc[1] = (robot_loc[1]+1) % (J_MAX+1)
+        m = move_robot(m, None, None, 1, 0)
     elif action == "LEFT":
-        robot_loc[1] = (robot_loc[1]-1) % (J_MAX+1)
+        m = move_robot(m, None, None, -1, 0)
     elif action == "DOWN":
-        robot_loc[0] = (robot_loc[0]+1) % (I_MAX+1)
+        m = move_robot(m, None, None, 0, 1)
     elif action == "UP":
-        robot_loc[0] = (robot_loc[0]-1) % (I_MAX+1)
+        m = move_robot(m, None, None, 0, -1)
     elif action == "PICK":
-        if m[tuple(robot_loc)] == 4:  # ROCKS
-            m[tuple(robot_loc)] = 2  # GRASS
-        elif m[tuple(robot_loc)] == 3:  # CRYSTALS
-            m[tuple(robot_loc)] = 2  # GRASS
-    m[tuple(robot_loc)] = -m[tuple(robot_loc)]
+        m = m.copy()
+        robot_loc = np.argwhere(m % 10 != 0)[0]
+        if m[tuple(robot_loc)] % 1000 // 100 == 4:  # ROCKS
+            m[tuple(robot_loc)] -= 200  # GRASS
+        elif m[tuple(robot_loc)] % 1000 // 100 == 3:  # CRYSTALS
+            m[tuple(robot_loc)] -= 100  # GRASS
     return m
 
 
@@ -432,7 +461,7 @@ def display_traj(traj):
 
 def reward(s1, a, s2):
     """Test reward function : we like to pick things"""
-    if a == 'PICK' and s1[1, 1] in [3, 4]:  # SHROOMS or CRYSTALS
+    if a == 'PICK' and s1[1, 1] % 1000 // 100 in [3, 4]:  # SHROOMS or CRYSTALS
         return 1
     else:
         return 0
@@ -443,8 +472,8 @@ def sars(ma):
     Q-learning"""
     answer = []
     for m1, a, m2 in zip(ma[::2], ma[1::2], ma[2::2]):
-        s1 = abs(robot_state(m1))
-        s2 = abs(robot_state(m2))
+        s1 = robot_state(m1)
+        s2 = robot_state(m2)
         r = reward(s1, a, s2)
         answer.append([s1, a, r, s2])
     return answer
@@ -495,9 +524,6 @@ def on_draw():
     global STATE
     print("Drawing main")
     WINDOW.clear()
-    robot_loc = np.argwhere(STATE.terrain() < 0)[0]
-    if STATE.terrain()[tuple(robot_loc)] == -5:  # TRAP
-        STATE.victory()
     try:
         if STATE.obj_func(STATE):
             STATE.next_func()
@@ -505,9 +531,11 @@ def on_draw():
         print(e)
     draw_assets(STATE)
 
+
 @WINDOW.event
 def on_mouse_motion(x, y, dx, dy):
     WINDOW.set_mouse_cursor(CURSORS[STATE.selected_tile])
+
 
 @WINDOW.event
 def on_key_press(symbol, modifiers):
@@ -540,11 +568,18 @@ def on_key_press(symbol, modifiers):
         train()
 
 
-def move_robot(m, i, j):
+def move_robot(m, i, j, di=0, dj=0):
     """Return the m matrix after the robot has been moved to i,j"""
-    answer = np.abs(m.copy())
-    answer[i, j] = -answer[i, j]
-    return answer
+    m = m.copy()
+    robot_loc = np.argwhere(m % 10 != 0)[0]
+    if i is None:
+        i = robot_loc[0]
+    if j is None:
+        j = robot_loc[1]
+    robot = m[tuple(robot_loc)] % 10
+    m[tuple(robot_loc)] = m[tuple(robot_loc)] // 10 * 10
+    m[(i + di) % (I_MAX+1), (j + dj) % (J_MAX+1)] += robot
+    return m
 
 
 def check_buttons(x, y, button, modifiers):
@@ -556,7 +591,8 @@ def check_buttons(x, y, button, modifiers):
                 cb()
                 return True
     return False
-    
+
+
 def xy2ij(x, y):
     ix = x
     iy = ((2*(J_MAX+1)+2)*TILE_SIZE_Y-y)
@@ -565,6 +601,7 @@ def xy2ij(x, y):
     i = round(iy-ix)+4
     j = round(ix+iy)-6  # TGCM!
     return i, j
+
 
 def on_mouse_press_lvl_editor(*args):
     global STATE
@@ -598,10 +635,11 @@ def on_mouse_press_game(*args):
     if button == pyglet.window.mouse.LEFT:
         STATE.set_terrain(move_robot(STATE.terrain(), i, j))
     elif button == pyglet.window.mouse.RIGHT:
-        if STATE.terrain()[i, j] < 0:
-            STATE.terrain()[i, j] = STATE.terrain()[i, j] - 1 if STATE.terrain()[i, j] != -5 else -1
-        else:
-            STATE.terrain()[i, j] = STATE.terrain()[i, j] + 1 if STATE.terrain()[i, j] != 5 else 1
+        reminder = STATE.terrain()[i, j] % 100
+        STATE.terrain()[i, j] = STATE.terrain()[i, j] + 100 % 500
+        if STATE.terrain()[i, j] == 0:
+            STATE.terrain()[i, j] = 100
+        STATE.terrain()[i, j] += reminder
 
 
 @WINDOW.event
