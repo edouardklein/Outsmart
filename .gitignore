@@ -1,4 +1,6 @@
 __pycache__/*
 img/zip/*
 virtualenv/*
+*.pyc
+*.swp
 

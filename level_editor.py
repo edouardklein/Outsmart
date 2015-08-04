@@ -9,9 +9,12 @@ if __name__ == "__main__":
     #FIXME filename, dirname, and directory hierarchy for the lvl componants (maps, script, ...)
     if len(argv)>1:
         osmt.STATE.filename = argv[1]
-        if os.path.isfile(osmt.STATE.filename):
-            osmt.load_cb()
+    try:
+        osmt.load_cb()
+    except FileNotFoundError:
+        pass
     osmt.STATE.active_ui = {k:True for k in osmt.STATE.active_ui}
     osmt.STATE.active_ui["Lab"] = False
+    osmt.STATE.active_ui["TileSelector"] = True
     osmt.STATE.level_editor = True
     osmt.pyglet.app.run()
