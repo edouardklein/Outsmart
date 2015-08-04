@@ -635,8 +635,8 @@ def on_key_press(symbol, modifiers):
         pyglet.app.exit()
     elif symbol == key.W:  # Wild
         go_wild()
-    #if STATE.terrain == STATE.get_wild and not STATE.level_editor:
-    #    return  # Deactivate the next keys when in the wild
+    if STATE.terrain == STATE.get_wild and not STATE.level_editor:
+        return  # Deactivate the next keys when in the wild
     if symbol == key.RIGHT:
         STATE.set_terrain(apply_action(STATE.terrain(), "RIGHT"))
     elif symbol == key.LEFT:

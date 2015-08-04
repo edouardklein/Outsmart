@@ -177,6 +177,6 @@ His name is Bob.
 You can control its position.""",
             o_text="Click on the green patch to move the robot there.",
             objective_function=lambda s: s.lab[6, 8] % 1000 == 201,
-            next_step=step_7)
+            next_step=step_2)
 
 osmt.pyglet.app.run()
