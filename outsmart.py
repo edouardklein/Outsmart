@@ -145,8 +145,8 @@ def load_cb():
 
 
 def save_state(s, filename):
-    np.savetxt(filename+'.lab', s.lab)
-    np.savetxt(filename+'.wild', s.wild)
+    np.savetxt(filename+'.lab', s.lab, fmt="%d")
+    np.savetxt(filename+'.wild', s.wild, fmt="%d")
 
 
 def save_cb():
