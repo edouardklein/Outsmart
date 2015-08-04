@@ -12,5 +12,6 @@ if __name__ == "__main__":
     osmt.load_cb()
     osmt.STATE.active_ui = {k:True for k in osmt.STATE.active_ui}
     osmt.STATE.active_ui["Lab"] = False
+    osmt.STATE.active_ui["TileSelector"] = True
     osmt.STATE.level_editor = True
     osmt.pyglet.app.run()
