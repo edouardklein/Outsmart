@@ -7,7 +7,7 @@ map_name = "tutorial.map"
 
 lvl_directory = os.path.dirname(os.path.abspath(__file__))
 
-osmt.STATE = osmt.load_state(lvl_directory + "/" + map_name)
+osmt.STATE = osmt.load_state(osmt.STATE, lvl_directory + "/" + map_name)
 
 # osmt.STATE.lab[6,8] = 2
 
