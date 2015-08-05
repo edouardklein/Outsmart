@@ -13,6 +13,7 @@ import glob
 import functools
 import itertools
 import subprocess
+import os.path
 
 TILE_SIZE_X = 64
 TILE_SIZE_Y = 32
@@ -474,10 +475,8 @@ def script(s_text="", o_text="",
 
 def play(media=None,media_file="", text=""):
     global STATE
-    print("here")
     #we prefer on-the-fly generation if availabe, to be up to date
     if text and STATE.on_the_fly_TTS_generate:
-        print("generating")
         if not media_file:
             media_file="tmp_TTS.wav"
         cmd = STATE.TTS_command.format(out=media_file)
@@ -492,11 +491,22 @@ def play(media=None,media_file="", text=""):
             STATE.player.queue(media)
             STATE.player.play()
         
-def set_TTS_generate(activate = False):
+def set_TTS_generate(activate = False, method="festival"):
     if activate:
-        print("WARN: Activating TTS-OTF for linux.")
+        print("WARN: Activating TTS-OTF with %s."%method)
+        if method=="festival":
+            TTS_exe = "/usr/bin/text2wave"
+            if not os.path.exists(TTS_exe):
+                print("ERR: %s not found."%TTS_exe)
+                return
+            STATE.TTS_command = """%s -o {out}"""%TTS_exe
+        elif method=="OSX-say":
+            TTS_exe = "say"
+            if not os.path.exists(TTS_exe):
+                print("ERR: %s not found."%TTS_exe)
+                return
+            STATE.TTS_command = """%s -o {out}"""%TTS_exe
     STATE.on_the_fly_TTS_generate = activate
-    STATE.TTS_command = """/usr/bin/text2wave -o {out}"""
 
 def robot_state(terrain):
     """Return the state visible to a robot"""
