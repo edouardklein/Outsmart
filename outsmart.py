@@ -14,6 +14,7 @@ import functools
 import itertools
 import subprocess
 import os.path
+import hashlib
 
 TILE_SIZE_X = 64
 TILE_SIZE_Y = 32
@@ -484,18 +485,24 @@ def play(media=None,media_file="", text=""):
     #we prefer on-the-fly generation if availabe, to be up to date
     if text and STATE.on_the_fly_TTS_generate:
         if not media_file:
-            media_file="tmp_TTS"
-        if STATE.TTS_command.startswith("/usr/bin/text2wave"):
-            cmd = STATE.TTS_command.format(out=media_file)
-            cmd = cmd.split()
-            p_cmd = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            p_cmd.communicate(input=text.encode())
-            if p_cmd.returncode == 0:
-                media = pyglet.media.load(media_file+".wav")
-        elif STATE.TTS_command.startswith("/usr/bin/say"):
-            cmd = STATE.TTS_command.format(out=media_file, text='"'+text.replace("\n", " ").replace('"', '\"')+'"')
-            os.system(cmd)
-            media = pyglet.media.load(media_file+".aiff")
+            media_file="snd/TTS/%s.aiff"%hashlib.sha1(text.encode()).hexdigest()
+        if not os.path.exists(media_file):
+            print("WARN: TTS file NOT found: %s"%media_file)
+            if STATE.TTS_command.startswith("/usr/bin/text2wave"):
+                cmd = STATE.TTS_command.format(out=media_file)
+                cmd = cmd.split()
+                p_cmd = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                p_cmd.communicate(input=text.encode())
+                if p_cmd.returncode == 0:
+                    print("INFO: sound file generated")
+            elif STATE.TTS_command.startswith("/usr/bin/say"):
+                cmd = STATE.TTS_command.format(out=media_file, text='"'+text.replace("\n", " ").replace('"', '\"')+'"')
+                os.system(cmd)
+                print("INFO: sound file generated (maybe)")
+        else:
+            print("INFO: TTS file found: %s"%media_file)
+    if os.path.exists(media_file):
+        media = pyglet.media.load(media_file)
     if media:
         if not STATE.player.playing:
             STATE.player.queue(media)
@@ -509,13 +516,13 @@ def set_TTS_generate(activate = False, method="festival"):
             if not os.path.exists(TTS_exe):
                 print("ERR: %s not found."%TTS_exe)
                 return
-            STATE.TTS_command = """%s -o {out}.wav"""%TTS_exe
+            STATE.TTS_command = """%s -otype aiff -o {out}"""%TTS_exe
         elif method=="OSX-say":
             TTS_exe = "/usr/bin/say"
             if not os.path.exists(TTS_exe):
                 print("ERR: %s not found."%TTS_exe)
                 return
-            STATE.TTS_command = """%s -v 'Vicki' -o {out}.aiff {text}"""%TTS_exe
+            STATE.TTS_command = """%s -v 'Vicki' -o {out} {text}"""%TTS_exe
     STATE.on_the_fly_TTS_generate = activate
 
 def robot_state(terrain):
