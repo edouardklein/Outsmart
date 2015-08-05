@@ -12,6 +12,7 @@ import random
 import glob
 import functools
 import itertools
+import subprocess
 
 TILE_SIZE_X = 64
 TILE_SIZE_Y = 32
@@ -445,6 +446,7 @@ def story_text(text):
     global STATE
     print("Story text now : "+text)
     STATE.story_text = xy_text([0, Y_MAX-10], text.split("\n"))
+    play(text=text)
 
 
 def objective_text(text):
@@ -472,14 +474,29 @@ def script(s_text="", o_text="",
 
 def play(media=None,media_file="", text=""):
     global STATE
+    print("here")
     #we prefer on-the-fly generation if availabe, to be up to date
     if text and STATE.on_the_fly_TTS_generate:
-        pass #TODO
+        print("generating")
+        if not media_file:
+            media_file="tmp_TTS.wav"
+        cmd = STATE.TTS_command.format(out=media_file)
+        cmd = cmd.split()
+        p_cmd = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p_cmd.communicate(input=text.encode())
+        if p_cmd.returncode == 0:
+            media = pyglet.media.load(media_file)
+        
     if media:
         if not STATE.player.playing:
             STATE.player.queue(media)
             STATE.player.play()
         
+def set_TTS_generate(activate = False):
+    if activate:
+        print("WARN: Activating TTS-OTF for linux.")
+    STATE.on_the_fly_TTS_generate = activate
+    STATE.TTS_command = """/usr/bin/text2wave -o {out}"""
 
 def robot_state(terrain):
     """Return the state visible to a robot"""
@@ -603,7 +620,7 @@ def print_omega(omega):
 @WINDOW.event
 def on_draw():
     global STATE
-    print("Drawing main")
+    #print("Drawing main")
     WINDOW.clear()
     try:
         if STATE.victorious(STATE):

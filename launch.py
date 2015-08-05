@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 import sys
+import outsmart as osmt
 import importlib
+import argparse
 
 lvl_directory = "levels"
-lvl_name = "tutorial"
 
 
 def import_lvl(name):
     importlib.import_module(".".join([lvl_directory, name, name]))
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        lvl_name = sys.argv[1]
-    import_lvl(lvl_name)
+    parser = argparse.ArgumentParser(description="Simple commandline launcher for Outsmart.")
+    parser.add_argument("lvl_name", metavar="level", nargs='?', help="name of a level present in the levels/ directory", default="tutorial")
+    parser.add_argument("--TTS_OTF", action="store_true", help="activate on-the-fly speach synthesis. (default OFF)")
+    
+    args = parser.parse_args()
+    osmt.set_TTS_generate(args.TTS_OTF)
+    import_lvl(args.lvl_name)
