@@ -320,7 +320,7 @@ for x, y, uid, group_ui, img_functor, cb in [
 
 def random_terrain():
     """Return a randomized terrain"""
-    answer = np.ones((I_MAX+1, J_MAX+1))
+    answer = np.ones((I_MAX+1, J_MAX+1))*100
     for i, j in zip(nprand.random_integers(0, I_MAX, 8),
                     nprand.random_integers(0, J_MAX, 8)):
         answer[i, j] = nprand.random_integers(2, 4)*100
@@ -434,6 +434,8 @@ def draw_assets(s):
     for t in [STATE.obj_text, STATE.story_text, STATE.log_text]:
         draw_text(t)
     m = s.terrain()
+    if m is None:
+        return
     for i in range(0, m.shape[0]):
         for j in range(0, m.shape[1]):
             x, y = ij2xy(m, i, j)

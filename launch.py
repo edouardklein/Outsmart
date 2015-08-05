@@ -3,21 +3,32 @@ import sys
 import outsmart as osmt
 import importlib.machinery
 import argparse
+import pyglet
+import glob
 
 lvl_directory = "levels"
 
 
 def import_lvl(name):
     # https://stackoverflow.com/questions/27381264/python-3-4-how-to-import-a-module-given-the-full-path
-    importlib.machinery.SourceFileLoader(name, '/'.join([lvl_directory, name, name])+'.py').load_module()
+    fname = glob.glob(name+'/*.py')[0]
+    importlib.machinery.SourceFileLoader(name, fname).load_module()
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Simple commandline launcher for Outsmart.")
-    parser.add_argument("lvl_name", metavar="level", nargs='?', help="name of a level present in the levels/ directory", default="tutorial")
-    parser.add_argument("--TTS_OTF", action="store_true", help="activate on-the-fly speach synthesis. (default OFF)")
-    parser.add_argument("--TTS_EXE", action="store", default="festival", help="activate on-the-fly speach synthesis. (default OFF)")
-    
-    args = parser.parse_args()
-    #osmt.set_TTS_generate(args.TTS_OTF, args.TTS_EXE)
-    osmt.set_TTS_generate(True, "OSX-say")
-    import_lvl(args.lvl_name)
+osmt.set_TTS_generate(True, "OSX-say")
+
+y_offset = 0
+for dir in glob.glob(lvl_directory+"/*"):
+    name = dir.split('/')[1][2:]
+    print("Dir : "+dir+", name :"+name)
+    img = pyglet.image.load(dir+"/img.png")
+    x = osmt.WINDOW.width//2-img.width//2
+    y = osmt.WINDOW.height-img.height - y_offset
+    y_offset += img.height+20
+    osmt.STATE.buttons[name] = [[x, y, x+img.width, y+img.height],
+                              "MainScreen", lambda img=img : img,
+                              lambda dir=dir: import_lvl(dir)]
+osmt.STATE.active_ui = {k: False for k in osmt.STATE.active_ui}
+osmt.STATE.active_ui["MainScreen"] = True
+osmt.STATE.lab = None
+
+osmt.pyglet.app.run()

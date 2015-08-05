@@ -4,4 +4,4 @@ virtualenv/*
 *.pyc
 *.swp
 build/*
-
+dist/*
