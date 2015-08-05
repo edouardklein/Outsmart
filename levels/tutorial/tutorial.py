@@ -25,6 +25,7 @@ if you tricked the red robot.""")
 
 def step_10():
     """Create the path"""
+    # FIXME La beta testeuse a mis des cristaux partout
     osmt.STATE.lab=np.loadtxt("levels/tutorial/grassy_path.lab")
     osmt.STATE.wild=np.loadtxt("levels/tutorial/tutorial.wild")
     osmt.STATE.victory = osmt.default_victory
@@ -100,6 +101,7 @@ in the wild.""",
 
 def step_6():
     """Resetting the robot"""
+    # FIXME La béta tsteuse ne lit pas le texte :)
     osmt.STATE.active_ui["Reset"] = True
     osmt.script(s_text="""Well this is underwhelming, but the lab setting was not
 very interesting to begin with.
@@ -141,6 +143,7 @@ This is the same here, only with robots.""",
 def step_3():
     """Rocks spawning"""
     def success(state):
+        # FIXME: Le bétat testeur a fait bouger Bob.
         bob_on_patch = state.lab[6, 8] % 10 == 1
         rock_nearby = state.lab[7, 8] // 100 == 4
         rock_nearby = rock_nearby or state.lab[5, 8] // 100 == 4
