@@ -106,9 +106,7 @@ def victorious(s):
 def default_defeat():
     """FIXME: Propose to try again"""
     global STATE
-    if not STATE.player.playing:
-        STATE.player.queue(DEFEAT_SONG)
-        STATE.player.play()
+    play(DEFEAT_SONG)
     STATE.story_text = []
     STATE.obj_text = []
     STATE.end_text = """DEFEAT.
@@ -178,6 +176,7 @@ class State:
         self.selected_tile = 0
 
         self.player = pyglet.media.Player()
+        self.on_the_fly_TTS_generate = False
 
 
 STATE = State()
@@ -470,6 +469,17 @@ def script(s_text="", o_text="",
     STATE.obj_func = objective_function
     STATE.next_func = next_step
 
+
+def play(media=None,media_file="", text=""):
+    global STATE
+    #we prefer on-the-fly generation if availabe, to be up to date
+    if text and STATE.on_the_fly_TTS_generate:
+        pass #TODO
+    if media:
+        if not STATE.player.playing:
+            STATE.player.queue(media)
+            STATE.player.play()
+        
 
 def robot_state(terrain):
     """Return the state visible to a robot"""
