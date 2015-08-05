@@ -29,7 +29,7 @@ def step_10():
     osmt.STATE.wild=np.loadtxt("levels/tutorial/tutorial.wild")
     osmt.STATE.victory = osmt.default_victory
     def grassy_path(s):
-        return all(s.lab[4, 2:8] // 100 == 2)
+        return all(s.lab[4, 2:8] // 100 == 2) and all(s.lab[5, 1:9] // 100 == 1) and all(s.lab[3, 1:9] // 100 == 1) and s.lab[4, 1] // 100 == 1
     osmt.script(s_text="""We have create the start of a grassy path in the lab.
 Complete it so that it looks like the one that was ahead of the
 red robot in the wild.""",
