@@ -5,6 +5,7 @@ import importlib.machinery
 import argparse
 import pyglet
 import glob
+import os.path
 
 lvl_directory = "levels"
 
@@ -17,16 +18,16 @@ def import_lvl(name):
 osmt.set_TTS_generate(True, "OSX-say")
 
 y_offset = 0
-for dir in glob.glob(lvl_directory+"/*"):
-    name = dir.split('/')[1][2:]
-    print("Dir : "+dir+", name :"+name)
-    img = pyglet.image.load(dir+"/img.png")
+for dirr in glob.glob(lvl_directory+"/*"):
+    name = os.path.split(dirr)[1][2:]
+    print("Dir : "+dirr+", name :"+name)
+    img = pyglet.image.load(dirr+"/img.png")
     x = osmt.WINDOW.width//2-img.width//2
     y = osmt.WINDOW.height-img.height - y_offset
     y_offset += img.height+20
     osmt.STATE.buttons[name] = [[x, y, x+img.width, y+img.height],
                               "MainScreen", lambda img=img : img,
-                              lambda dir=dir: import_lvl(dir)]
+                              lambda dirr=dirr: import_lvl(dirr)]
 osmt.STATE.active_ui = {k: False for k in osmt.STATE.active_ui}
 osmt.STATE.active_ui["MainScreen"] = True
 osmt.STATE.lab = None
