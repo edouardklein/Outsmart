@@ -26,8 +26,8 @@ if you tricked the red robot.""")
 def step_10():
     """Create the path"""
     # FIXME La beta testeuse a mis des cristaux partout
-    osmt.STATE.lab=np.loadtxt("levels/tutorial/grassy_path.lab")
-    osmt.STATE.wild=np.loadtxt("levels/tutorial/tutorial.wild")
+    osmt.STATE.lab=np.loadtxt(lvl_directory + "/grassy_path.lab")
+    osmt.STATE.wild=np.loadtxt(lvl_directory + "/tutorial.wild")
     osmt.STATE.victory = osmt.default_victory
     def grassy_path(s):
         return all(s.lab[4, 2:8] // 100 == 2) and all(s.lab[5, 1:9] // 100 == 1) and all(s.lab[3, 1:9] // 100 == 1) and s.lab[4, 1] // 100 == 1
