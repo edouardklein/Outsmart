@@ -30,7 +30,7 @@ def step_10():
     osmt.STATE.wild=np.loadtxt("levels/tutorial/tutorial.wild")
     osmt.STATE.victory = osmt.default_victory
     def grassy_path(s):
-        return all(s.lab[4, 2:8] // 100 == 2)
+        return all(s.lab[4, 2:8] // 100 == 2) and all(s.lab[5, 1:9] // 100 == 1) and all(s.lab[3, 1:9] // 100 == 1) and s.lab[4, 1] // 100 == 1
     osmt.script(s_text="""We have create the start of a grassy path in the lab.
 Complete it so that it looks like the one that was ahead of the
 red robot in the wild.""",
@@ -135,7 +135,7 @@ When dealing with animals food is used as a reward.
 This is the same here, only with robots.""",
                 o_text="Try again to train Bob by clicking on the"
                 """"Train" button.""",
-                objective_function=lambda s: s.log_text[0][1] == "Training"
+                objective_function=lambda s: s.log_text != [] and s.log_text[0][1] == "Training"
                 " successful !",
                 next_step=step_5)
 
@@ -168,7 +168,7 @@ You can train Bob with a state-of-the-art
 Reinforcement Learning algorithm.
 This will allow you to train him like you would a dog or a rat.""",
                 o_text="Train bob by clicking on the train button.",
-                objective_function=lambda s: s.log_text[0][1] == 'Error !',
+                objective_function=lambda s: s.log_text != [] and s.log_text[0][1] == 'Error !',
                 next_step=step_3)
 
 
