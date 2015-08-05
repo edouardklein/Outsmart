@@ -482,10 +482,10 @@ def script(s_text="", o_text="",
 
 def play(media=None,media_file="", text=""):
     global STATE
+    if not media_file:
+        media_file="snd/TTS/%s.aiff"%hashlib.sha1(text.encode()).hexdigest()
     #we prefer on-the-fly generation if availabe, to be up to date
     if text and STATE.on_the_fly_TTS_generate:
-        if not media_file:
-            media_file="snd/TTS/%s.aiff"%hashlib.sha1(text.encode()).hexdigest()
         if not os.path.exists(media_file):
             print("WARN: TTS file NOT found: %s"%media_file)
             if STATE.TTS_command.startswith("/usr/bin/text2wave"):
@@ -504,9 +504,11 @@ def play(media=None,media_file="", text=""):
     if os.path.exists(media_file):
         media = pyglet.media.load(media_file)
     if media:
+        STATE.player.queue(media)
         if not STATE.player.playing:
-            STATE.player.queue(media)
             STATE.player.play()
+        else:
+            STATE.player.next_source()
         
 def set_TTS_generate(activate = False, method="festival"):
     if activate:
