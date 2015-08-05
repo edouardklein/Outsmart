@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 import sys
 import outsmart as osmt
-import importlib
+import importlib.machinery
 import argparse
 
 lvl_directory = "levels"
 
 
 def import_lvl(name):
-    importlib.import_module(".".join([lvl_directory, name, name]))
+    # https://stackoverflow.com/questions/27381264/python-3-4-how-to-import-a-module-given-the-full-path
+    importlib.machinery.SourceFileLoader(name, '/'.join([lvl_directory, name, name])+'.py').load_module()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Simple commandline launcher for Outsmart.")
@@ -17,5 +18,6 @@ if __name__ == "__main__":
     parser.add_argument("--TTS_EXE", action="store", default="festival", help="activate on-the-fly speach synthesis. (default OFF)")
     
     args = parser.parse_args()
-    osmt.set_TTS_generate(args.TTS_OTF, args.TTS_EXE)
+    #osmt.set_TTS_generate(args.TTS_OTF, args.TTS_EXE)
+    osmt.set_TTS_generate(True, "OSX-say")
     import_lvl(args.lvl_name)
