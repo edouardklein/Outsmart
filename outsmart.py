@@ -513,16 +513,13 @@ def set_TTS_generate(activate = False, method="festival"):
         print("WARN: Activating TTS-OTF with %s."%method)
         if method=="festival":
             TTS_exe = "/usr/bin/text2wave"
-            if not os.path.exists(TTS_exe):
-                print("ERR: %s not found."%TTS_exe)
-                return
             STATE.TTS_command = """%s -otype aiff -o {out}"""%TTS_exe
         elif method=="OSX-say":
             TTS_exe = "/usr/bin/say"
-            if not os.path.exists(TTS_exe):
-                print("ERR: %s not found."%TTS_exe)
-                return
             STATE.TTS_command = """%s -v 'Vicki' -o {out} {text}"""%TTS_exe
+        if not os.path.exists(TTS_exe):
+            print("ERR: %s not found."%TTS_exe)
+            return
     STATE.on_the_fly_TTS_generate = activate
 
 def robot_state(terrain):
