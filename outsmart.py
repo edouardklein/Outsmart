@@ -136,8 +136,8 @@ class State:
         return self.wild
 
     def __init__(self):
-        self.lab = np.ones((I_MAX+1, J_MAX+1))  # Terrain for the lab
-        self.lab[0, 0] = -1
+        self.lab = 100*np.ones((I_MAX+1, J_MAX+1))  # Terrain for the lab
+        self.lab[0, 0] = 101
 
         self.wild = self.lab.copy()
 
@@ -176,6 +176,7 @@ class State:
         self.losing = losing
         self.defeat = default_defeat
         self.selected_tile = 0
+        self.gallery_displayed_tile_index = 0
 
         self.player = pyglet.media.Player()
         self.on_the_fly_TTS_generate = False
@@ -183,10 +184,11 @@ class State:
 
 STATE = State()
 
+GALLERY = [100, 110, 200, 210, 300, 310, 400, 410]
 
 CURSORS = {}
-for k in range(1, 5):
-    CURSORS[k] = pyglet.window.ImageMouseCursor(nb2images(k*100)[0], 0, 0)
+for k in GALLERY:
+    CURSORS[k] = pyglet.window.ImageMouseCursor(nb2images(k)[0], 0, 0)
 CURSORS[0] = WINDOW.CURSOR_DEFAULT
 
 
@@ -265,11 +267,19 @@ def go_lab():
     STATE.active_ui["Reset"] = True
 
 
-def set_image_as_cursor(i):
-    def fun():
-        global STATE
-        STATE.selected_tile = i
-    return fun
+def set_image_as_cursor():
+    global STATE
+    STATE.selected_tile = GALLERY[STATE.gallery_displayed_tile_index]
+
+def get_gallery_image():
+    global STATE
+    return nb2images(GALLERY[STATE.gallery_displayed_tile_index])[0]
+
+def get_next_gallery_image_cb():
+    STATE.gallery_displayed_tile_index = (STATE.gallery_displayed_tile_index + 1) % len(GALLERY)
+
+def get_prev_gallery_image_cb():
+    STATE.gallery_displayed_tile_index = (STATE.gallery_displayed_tile_index - 1) % len(GALLERY)
 
 for x, y, uid, group_ui, text, cb in [[10, 20, "reset", "Reset",
                                        "Reset", reset],
@@ -283,6 +293,10 @@ for x, y, uid, group_ui, text, cb in [[10, 20, "reset", "Reset",
                                        "Lab", go_lab],
                                       [900, 20, "wilderness", "Wild",
                                        "Wild", go_wild],
+                                      [1000, 20, "previous_tile", "TileSelector",
+                                       "prev", get_prev_gallery_image_cb],
+                                      [1100, 20, "next_tile", "TileSelector",
+                                       "next", get_next_gallery_image_cb],
                                       [10, 10,
                                        "retry", "Retry",
                                        "Retry", load_checkpoint]]:
@@ -296,19 +310,11 @@ def checkpoint_now():
     CHECKPOINT = copy.deepcopy(STATE)
 
 
-for x, y, uid, group_ui, img, cb in [[1000, 100, "img_1", "TileSelector",
-                                     nb2images(100)[0],
-                                      set_image_as_cursor(1)],
-                                     [1140, 100, "img_2", "TileSelector",
-                                      nb2images(200)[0],
-                                     set_image_as_cursor(2)],
-                                     [1000, 0, "img_3", "TileSelector",
-                                      nb2images(300)[0],
-                                     set_image_as_cursor(3)],
-                                     [1140, 0, "img_4", "TileSelector",
-                                      nb2images(400)[0],
-                                     set_image_as_cursor(4)]]:
-    STATE.buttons[uid] = [[x, y, x+img.width, y+img.height], group_ui, img, cb]
+for x, y, uid, group_ui, img_functor, cb in [
+                                     [1000, 50, "current_tile", "TileSelector",
+                                      get_gallery_image,
+                                     set_image_as_cursor]]:
+    STATE.buttons[uid] = [[x, y, x+img_functor().width, y+img_functor().height], group_ui, img_functor, cb]
 
 
 def random_terrain():
@@ -415,7 +421,7 @@ def draw_buttons(buttons):
                                     font_name='KenVector Future Thin Regular')
             lbl.draw()
         else:  # image button
-            sprite = pyglet.sprite.Sprite(content, x=x, y=y)
+            sprite = pyglet.sprite.Sprite(content(), x=x, y=y)
             sprite.draw()
 
 
