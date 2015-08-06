@@ -313,7 +313,7 @@ def draw_objective_text(text):
 
 def draw_log_text(text):
     """Display in the lower left corner"""
-    draw_text(xy_text(10, 10, text))
+    draw_text(xy_text(10, 10, text.split("\n")))
 
 
 def draw_end_text(text):

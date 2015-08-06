@@ -131,9 +131,9 @@ def train(m, _rl):
     _rl = rl.copy(_rl)
     sars_list = []
     for i in range(10):
-        ma = _walk(m, _rl.pi, 10, rand=.5)
+        ma = _walk(m, _rl.policy, 10, rand=.5)
         sars_list += sars(ma)
-    return rl.Q_learning(_rl, sars_list)
+    return rl.q_learning(_rl, sars_list)
 
 
 def robot_state(terrain):
@@ -158,7 +158,7 @@ def robot_state(terrain):
 @return_copy
 def walk_lab(s, length, rand=0):
     """Apply the given state's policy to its lab matrix"""
-    ma = _walk(s.lab, s.rl.pi, length, rand=rand)
+    ma = _walk(s.lab, s.rl.policy, length, rand=rand)
     s.ui.log_text = "Stepping : chosen action is "+ma[-2]+"."  # Possible
     # abstraction leak ? We shouldn't touch ui in this module...
     s.lab = ma[-1]
@@ -168,7 +168,7 @@ def walk_lab(s, length, rand=0):
 @return_copy
 def walk_wild(s, length, rand=0):
     """Apply the given state's policy to its wild matrix"""
-    ma = _walk(s.wild, s.rl.pi, length, rand=rand)
+    ma = _walk(s.wild, s.rl.policy, length, rand=rand)
     sars_list = sars(ma)
     s.nb_resources += sum([r for _, _, r, _ in sars_list])
     s.wild = ma[-1]

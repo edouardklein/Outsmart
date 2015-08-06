@@ -76,9 +76,9 @@ def train(s):
     try:
         s.rl = osmt.train(s.lab, s.rl)
     except AssertionError:
-        s.log_text = "Error ! No reward found this time."
+        s.ui.log_text = "Error ! No reward found this time."
     else:
-        s.log_text = "Training succeeded."
+        s.ui.log_text = "Training succeeded."
     return s
 
 

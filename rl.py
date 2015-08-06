@@ -1,15 +1,20 @@
 """Implementation of q_learning with a linear approximator for the Q-value"""
 import random
 import numpy as np
+import copy as cp
 
 
 class RL:
     """Simple object store"""
     def __init__(self, dim, actions, phi):
         self.omega = np.zeros(dim)
-        self.policy = lambda: random.choice(actions)
+        self.policy = lambda s: random.choice(actions)
         self.phi = phi
         self.actions = actions
+
+
+def copy(rl):
+    return cp.deepcopy(rl)
 
 
 def q_function(omega, phi):
