@@ -91,15 +91,15 @@ def level_buttons():
     lvl_directory = "levels"  # DEFAULT
     y_offset = 0
     answer = {}
-    for dir in glob.glob(lvl_directory+"/*"):
-        img = pyglet.image.load(dir+"/img.png")
-        name = dir.split('/')[1][2:]  # FIXME use os.path.split()
-        print("Dir : "+dir+", name :"+name)
+    for dirr in glob.glob(lvl_directory+"/*"):
+        name = os.path.split(dirr)[1][2:]
+        print("Dir : "+dirr+", name :"+name)
+        img = pyglet.image.load(dirr+"/img.png")
         x = WINDOW.width//2 - img.width//2
         y = WINDOW.height-img.height - y_offset
         y_offset += img.height+20
         answer["main_"+name] = [x, y, lambda s, img=img: img,
-                                lambda dir=dir: import_lvl(dir)]
+                                lambda dirr=dirr: import_lvl(dirr)]
     return answer
 
 
