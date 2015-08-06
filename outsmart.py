@@ -105,7 +105,7 @@ class State:
         # is reached
         self.next_func = lambda: None  # Called when obj_func returns True
 
-        self.rl = rl.RL(4*9*len(ACTIONS))  # Q-learning
+        self.rl = rl.RL(4*9*len(ACTIONS), ACTIONS, phi)  # Q-learning
 
 
 ############################################

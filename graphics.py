@@ -26,13 +26,14 @@ def _state(func):
 ############################################
 def draw_text(text_list, center=False):
     """Draw the given [x, y, size, text] list"""
-    anchor = 0 if not center else 'center'
+    anchor_x = 'left' if not center else 'center'
+    anchor_y = 'baseline' if not center else 'center'
     for x, y, size, t in text_list:
         label = pyglet.text.Label(t, x=x, y=y,
                                   font_name='KenVector Future Thin Regular',
                                   font_size=size,
-                                  anchor_x=anchor,
-                                  anchor_y=anchor)
+                                  anchor_x=anchor_x,
+                                  anchor_y=anchor_y)
         label.draw()
 
 BUTTON_LEFT = pyglet.image.load('img/button_left.png')
@@ -50,7 +51,7 @@ def draw_text_button(x, y, text):
         sprite.draw()
     sprite = pyglet.sprite.Sprite(BUTTON_RIGHT, x=x+pixel_length, y=y)
     sprite.draw()
-    draw_text([x+6, y+9, 12, text])
+    draw_text([[x+6, y+9, 12, text]])
 
 
 def draw_buttons(s):
@@ -97,7 +98,7 @@ def level_buttons():
         x = WINDOW.width//2 - img.width//2
         y = WINDOW.height-img.height - y_offset
         y_offset += img.height+20
-        answer["main_"+name] = [x, y, pyglet.image.load(dir+"/img.png"),
+        answer["main_"+name] = [x, y, lambda s, img=img: img,
                                 lambda dir=dir: import_lvl(dir)]
     return answer
 
@@ -110,7 +111,7 @@ BUTTONS = {"lab_wild_reset": [10, 50, "Reset", lambda: _state(ui.reset)],
            "lab_go_wild": [10, 200, "Wild", lambda:  _state(ui.wild)],
            "wild_go_lab": [200, 200, "Lab", lambda:  _state(ui.lab)],
            "lab_wild_quit": [10, 250, "Exit to main menu",
-                             lambda: _state(_quit())],
+                             lambda: _state(_quit)],
 
            "retry": [500, 500,
                      pyglet.image.load('img/retry.png'), _state(ui.retry)],
@@ -122,7 +123,7 @@ BUTTONS = {"lab_wild_reset": [10, 50, "Reset", lambda: _state(ui.reset)],
                              lambda s: pyglet.image.load('img/rarrow.png'),
                              lambda: _state(ui.next_tile)],
            "lab_current_tile": [1000, 50,
-                                lambda s: nb2images(ui.current_tile(s))[0],
+                                lambda s: nb2images(s.ui.current_tile)[0],
                                 lambda: _state(ui.tile_tool)]}
 
 
@@ -340,7 +341,7 @@ if WINDOW.width < X_MIN or WINDOW.height < Y_MIN:
 def draw_assets(s):
     "Draw the game state"
     if s.ui.active["editor_wild_lab_terrain"]:
-        m = s.terrain()
+        m = s.ui.terrain(s)
         for i in range(0, m.shape[0]):
             for j in range(0, m.shape[1]):
                 x, y = ij2xy(m, i, j)
@@ -373,7 +374,7 @@ def on_mouse_motion(x, y, dx, dy):
 
 
 BINDINGS = {key.S: ["lab_step", lambda: _state(ui.step)],
-            key.Q: ["lab_wild_quit", lambda: _state(ui._quit)],
+            key.Q: ["lab_wild_quit", lambda: _state(_quit)],
             key.W: ["lab_go_wild", lambda: _state(ui.wild)],
             key.L: ["wild_go_lab", lambda: _state(ui.lab)],
             key.T: ["lab_train", lambda: _state(ui.train)],
@@ -394,7 +395,13 @@ BINDINGS = {key.S: ["lab_step", lambda: _state(ui.step)],
 @WINDOW.event
 def on_key_press(symbol, modifiers):
     """Call the appropriate binding"""
-    name, func = BINDINGS[symbol]
+    try:
+        name, func = BINDINGS[symbol]
+    except KeyError:
+        print("Key not bound, symbol "+str(symbol))
+        print(list(BINDINGS.keys()))
+        print("e.g. UP is supposed to be : "+str(key.UP))
+        return
     if STATE.ui.active[name]:
         func()
 
@@ -424,7 +431,6 @@ def _quit(s):
 
 STATE = osmt.State()
 STATE.ui = ui.UI()
-ui.ALL_INACTIVE.update({"editor_wild_lab_terrain": False})
 # Main menu hack
 _d = level_buttons()
 BUTTONS.update(_d)

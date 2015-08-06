@@ -45,7 +45,8 @@ ALL_INACTIVE = {k: False for k in ["lab_wild_reset", "lab_train",
                                    "lab_right",
                                    "lab_left", "lab_up", "lab_down",
                                    "lab_pick", "story_text", "obj_text",
-                                   "log_text", "end_text"]}
+                                   "log_text", "end_text",
+                                   "editor_wild_lab_terrain"]}
 
 LAB_ACTIVE = ALL_INACTIVE.copy()
 LAB_ACTIVE.update({k: True for k in ALL_INACTIVE if "lab_" in k})
@@ -148,14 +149,16 @@ GALLERY = [100, 110, 200, 210, 300, 310, 400, 410]
 @return_copy
 def prev_tile(s):
     """Select prev tile in the tile tool"""
-    s.ui._current_tile = GALLERY.index(s.ui.current_tile) - 1 % len(GALLERY)
+    i = (GALLERY.index(s.ui.current_tile) - 1) % len(GALLERY)
+    s.ui.current_tile = GALLERY[i]
     return s
 
 
 @return_copy
 def next_tile(s):
     """Select next tile in the tile tool"""
-    s.ui._current_tile = GALLERY.index(s.ui.current_tile) + 1 % len(GALLERY)
+    i = (GALLERY.index(s.ui.current_tile) + 1) % len(GALLERY)
+    s.ui.current_tile = GALLERY[i]
     return s
 
 
@@ -166,15 +169,10 @@ def tile_tool(s):
     return s
 
 
-def current_tile(s):
-    """Return the image for the current tile"""
-    return GALLERY[s.ui._current_tile]
-
-
 @return_copy
 def apply_action(s, a):
     """Apply the given action to the relevant matrix"""
-    s.ui.set_terrain(s, osmt.apply_action(s.ui.terrain(), a))
+    s.ui.set_terrain(s, osmt.apply_action(s.ui.terrain(s), a))
     return s
 
 
@@ -197,8 +195,8 @@ def click(s, i, j):
     """Validate terrain modification if appropriate"""
     if s.ui.terrain == get_wild:
         return
-    m = s.ui.terrain().copy()
-    m[i, j] = GALLERY[s.ui.current_tile]
+    m = s.ui.terrain(s).copy()
+    m[i, j] = s.ui.current_tile
     s.ui.set_terrain(s, m)
     return s
 
@@ -212,7 +210,7 @@ def set_lab(s, m):
 def get_lab(s):
     answer = s.lab.copy()
     if s.ui.cursor:
-        answer[tuple(s.ui.cursor)] = GALLERY[s.ui.current_tile]
+        answer[tuple(s.ui.cursor)] = s.ui.current_tile
     return answer
 
 
@@ -235,7 +233,7 @@ class UI():
 
         self.active = ALL_INACTIVE.copy()  # Active ui elements
 
-        self.current_tile = 0  # For the terrain editor
+        self.current_tile = 100  # For the terrain editor
         self.cursor = False  # Tile the user is hovering
 
         self.defeat = defeat
