@@ -50,6 +50,7 @@ ALL_INACTIVE = {k: False for k in ["lab_wild_reset", "lab_train",
 
 LAB_ACTIVE = ALL_INACTIVE.copy()
 LAB_ACTIVE.update({k: True for k in ALL_INACTIVE if "lab_" in k})
+LAB_ACTIVE.update({k: True for k in ALL_INACTIVE if "_text" in k})
 
 WILD_ACTIVE = ALL_INACTIVE.copy()
 WILD_ACTIVE.update({k: True for k in ALL_INACTIVE if "wild_" in k})
@@ -91,8 +92,7 @@ def step(s):
 @return_copy
 def load(s):
     """Load the lab and wild matrix from file"""
-    filename = s.ui.filename
-    s = osmt.load_state(s, filename)
+    s = osmt.load_state(s, s.ui.filename)
     s.log_text = "Matrices loaded"
     return s
 
@@ -196,7 +196,10 @@ def click(s, i, j):
     if s.ui.terrain == get_wild:
         return
     m = s.ui.terrain(s).copy()
-    m[i, j] = s.ui.current_tile
+    if s.ui.tile_tool:
+        m[i, j] = s.ui.current_tile
+    else:
+        m = osmt.move_robot(m, i, j)
     s = s.ui.set_terrain(s, m)
     return s
 

@@ -217,7 +217,7 @@ def play(text="", media=None, media_file=""):
     elif media_file:
         play_file(media_file)
     else:  # text
-        if text.beginswith("Defeat !"):
+        if text.startswith("Defeat !"):
             play_file('snd/dead.mp3')  # Play defeat song
         play_text(text)
 
@@ -272,11 +272,12 @@ def play_file(fname):
 
 def play_media(media):
     """Actually play the media, cut the playing one off if necessary"""
-    STATE.player.queue(media)
-    if not STATE.player.playing:
-        STATE.player.play()
+    global PLAYER
+    PLAYER.queue(media)
+    if not PLAYER.playing:
+        PLAYER.play()
     else:
-        STATE.player.next_source()
+        PLAYER.next_source()
 
 
 ############################################
@@ -286,7 +287,7 @@ pyglet.font.add_file('img/kenvector_future_thin.ttf')
 KenFuture = pyglet.font.load('KenVector Future Thin Regular')
 
 
-def xy_text(x, y, text, size=36):
+def xy_text(x, y, text, size=12):
     """Return the list of [x, y, size, text] items that draw_text() will
     understand"""
     return [[x, y - i*15, size, line] for i, line in enumerate(text)]
@@ -323,7 +324,7 @@ def draw_end_text(text):
     draw_text(xy_text(300, 300, '\n'.join(l[1:])))
 
 
-def draw_all_text(s):
+def draw_all_texts(s):
     draw_story_text(s.ui.story_text) if s.ui.active["story_text"] else None
     draw_objective_text(s.ui.obj_text) if s.ui.active["obj_text"] else None
     draw_log_text(s.ui.log_text) if s.ui.active["log_text"] else None
@@ -346,7 +347,7 @@ def draw_assets(s):
             for j in range(0, m.shape[1]):
                 x, y = ij2xy(m, i, j)
                 draw_sprite(m[i, j], x, y)
-    draw_all_text(s)
+    draw_all_texts(s)
     draw_buttons(s)
 
 
@@ -429,6 +430,7 @@ def _quit(s):
     return s
 
 
+PLAYER = pyglet.media.Player()
 STATE = osmt.State()
 STATE.ui = ui.UI()
 # Main menu hack

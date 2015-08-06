@@ -1,27 +1,51 @@
 #!/usr/bin/env python3
 import numpy as np
+from outsmart import return_copy
 import os.path
 import graphics as g
 import ui
 
 
-def step_1():
-    g.STATE = ui.lab(g.STATE)
-    g.STATE.ui.active = ui.ALL_INACTIVE
-    g.STATE.ui.active["editor_wild_lab_terrain"] = True
-    g.STATE.ui.log_text = ""
-    g.STATE.ui.story_text = """This is your lab.
+@return_copy
+def step_1(s):
+    """Move the robot"""
+    s.ui.filename = os.path.dirname(os.path.abspath(__file__))
+    s.ui.filename += "/tutorial"
+    s = ui.load(s)
+    s = ui.lab(s)
+    s.ui.active = ui.ALL_INACTIVE
+    s.ui.active["editor_wild_lab_terrain"] = True
+    s.ui.active.update({k: True for k in ui.ALL_INACTIVE
+                        if "_text" in k})
+    s.ui.log_text = ""
+    s.ui.story_text = """This is your lab.
 The blue robot is a test robot.
 His name is Bob.
-You can control its position.""",
-    g.STATE.obj_text = "Click on the green patch to move the robot there."
-    g.STATE.obj_func = lambda s: s.lab[6, 8] % 1000 == 201
-    g.STATE.next_step = step_2
+You can control its position."""
+    s.ui.obj_text = "Click on the green patch to move the robot there."
+    s.obj_func = lambda s: s.lab[6, 8] % 1000 == 201
+    s.next_func = step_2
+    return s
+
+@return_copy
+def step_2(s):
+    """Frist training"""
+    print("Now in STEP 2")
+    s.ui.active["lab_train"] = True
+    s.ui.story_text = """Good Job !
+You can train Bob with a state-of-the-art
+Reinforcement Learning algorithm.
+This will allow you to train him like you would a dog or a rat."""
+    s.ui.obj_text = "Train bob by clicking on the train button."
+    s.obj_func = lambda s: s.log_text == 'Error !'
+    s.next_func = step_3
+    print("Exiting step2")
+    return s
 
 
 #map_name = "tutorial"
 
-#lvl_directory = os.path.dirname(os.path.abspath(__file__))
+#lvl_directory = 
 
 #osmt.STATE = osmt.load_state(osmt.STATE, lvl_directory + "/" + map_name)
 
@@ -176,15 +200,5 @@ Let's change that.""",
                 next_step=step_4)
 
 
-def step_2():
-    """Frist training"""
-    osmt.STATE.active_ui["Train"] = True
-    osmt.script(s_text="""Good Job !
-You can train Bob with a state-of-the-art
-Reinforcement Learning algorithm.
-This will allow you to train him like you would a dog or a rat.""",
-                o_text="Train bob by clicking on the train button.",
-                objective_function=lambda s: s.log_text != [] and s.log_text[0][1] == 'Error !',
-                next_step=step_3)
 
-step_1()
+g.STATE = step_1(g.STATE)
