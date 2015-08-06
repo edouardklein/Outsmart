@@ -172,7 +172,7 @@ def tile_tool(s):
 @return_copy
 def apply_action(s, a):
     """Apply the given action to the relevant matrix"""
-    s.ui.set_terrain(s, osmt.apply_action(s.ui.terrain(s), a))
+    s = s.ui.set_terrain(s, osmt.apply_action(s.ui.terrain(s), a))
     return s
 
 
