@@ -197,7 +197,7 @@ def click(s, i, j):
         return
     m = s.ui.terrain(s).copy()
     m[i, j] = s.ui.current_tile
-    s.ui.set_terrain(s, m)
+    s = s.ui.set_terrain(s, m)
     return s
 
 
@@ -209,7 +209,7 @@ def set_lab(s, m):
 
 def get_lab(s):
     answer = s.lab.copy()
-    if s.ui.cursor:
+    if s.ui.cursor and s.ui.tile_tool:
         answer[tuple(s.ui.cursor)] = s.ui.current_tile
     return answer
 
@@ -235,6 +235,7 @@ class UI():
 
         self.current_tile = 100  # For the terrain editor
         self.cursor = False  # Tile the user is hovering
+        self.tile_tool = False
 
         self.defeat = defeat
         self.victory = victory
