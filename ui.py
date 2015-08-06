@@ -44,7 +44,8 @@ ALL_INACTIVE = {k: False for k in ["lab_wild_reset", "lab_train",
                                    "lab_current_tile", "lab_wild_step",
                                    "lab_right",
                                    "lab_left", "lab_up", "lab_down",
-                                   "lab_pick"]}
+                                   "lab_pick", "story_text", "obj_text",
+                                   "log_text", "end_text"]}
 
 LAB_ACTIVE = ALL_INACTIVE.copy()
 LAB_ACTIVE.update({k: True for k in ALL_INACTIVE if "lab_" in k})

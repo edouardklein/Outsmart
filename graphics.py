@@ -297,8 +297,6 @@ OLD_STORY_TEXT = ""
 def draw_story_text(text):
     """Display in the upper left corner"""
     global OLD_STORY_TEXT
-    if not ui.active["story_text"]:
-        return
     draw_text(xy_text(0, Y_MIN-10, text.split("\n")))
     if OLD_STORY_TEXT != text:
         play(text=text)
@@ -307,23 +305,17 @@ def draw_story_text(text):
 
 def draw_objective_text(text):
     """Display in the upper right corner"""
-    if not ui.active["obj_text"]:
-        return
     draw_text(xy_text(X_MIN-600, Y_MIN-10,
                       ["OBJECTIVES"]+text.split("\n")))
 
 
 def draw_log_text(text):
     """Display in the lower left corner"""
-    if not ui.active["log_text"]:
-        return
     draw_text(xy_text(10, 10, text))
 
 
 def draw_end_text(text):
     """Display over the whole screen"""
-    if not ui.active["end_text"]:
-        return
     l = text.split("\n")
     draw_text([[WINDOW.width//2, WINDOW.height//2, 36, l[0]]],
               center=True)
@@ -331,23 +323,23 @@ def draw_end_text(text):
 
 
 def draw_all_text(s):
-    draw_story_text(s.ui.story_text)
-    draw_objective_text(s.ui.obj_text)
-    draw_log_text(s.ui.log_text)
-    draw_end_text(s.ui.end_text)
+    draw_story_text(s.ui.story_text) if s.ui.active["story_text"] else None
+    draw_objective_text(s.ui.obj_text) if s.ui.active["obj_text"] else None
+    draw_log_text(s.ui.log_text) if s.ui.active["log_text"] else None
+    draw_end_text(s.ui.end_text) if s.ui.active["end_text"] else None
 
 
 ############################################
 # Events
 ############################################
 WINDOW = pyglet.window.Window(fullscreen=True)
-if WINDOW.width < X_MIN or WINDOW.heigth < Y_MIN:
+if WINDOW.width < X_MIN or WINDOW.height < Y_MIN:
     exit(1)  # Screen too small
 
 
 def draw_assets(s):
     "Draw the game state"
-    if s.ui.active["terrain"]:
+    if s.ui.active["editor_wild_lab_terrain"]:
         m = s.terrain()
         for i in range(0, m.shape[0]):
             for j in range(0, m.shape[1]):
