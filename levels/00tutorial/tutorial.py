@@ -1,13 +1,29 @@
 #!/usr/bin/env python3
-import outsmart as osmt
 import numpy as np
 import os.path
+import graphics as g
+import ui
 
-map_name = "tutorial"
 
-lvl_directory = os.path.dirname(os.path.abspath(__file__))
+def step_1():
+    g.STATE = ui.lab(g.STATE)
+    g.STATE.ui.active = ui.ALL_INACTIVE
+    g.STATE.ui.active["editor_wild_lab_terrain"] = True
+    g.STATE.ui.log_text = ""
+    g.STATE.ui.story_text = """This is your lab.
+The blue robot is a test robot.
+His name is Bob.
+You can control its position.""",
+    g.STATE.obj_text = "Click on the green patch to move the robot there."
+    g.STATE.obj_func = lambda s: s.lab[6, 8] % 1000 == 201
+    g.STATE.next_step = step_2
 
-osmt.STATE = osmt.load_state(osmt.STATE, lvl_directory + "/" + map_name)
+
+#map_name = "tutorial"
+
+#lvl_directory = os.path.dirname(os.path.abspath(__file__))
+
+#osmt.STATE = osmt.load_state(osmt.STATE, lvl_directory + "/" + map_name)
 
 # osmt.STATE.lab[6,8] = 2
 
@@ -171,14 +187,4 @@ This will allow you to train him like you would a dog or a rat.""",
                 objective_function=lambda s: s.log_text != [] and s.log_text[0][1] == 'Error !',
                 next_step=step_3)
 
-
-osmt.go_lab()
-osmt.STATE.active_ui = {k:False for k in osmt.STATE.active_ui}
-osmt.script(s_text="""This is your lab.
-The blue robot is a test robot.
-His name is Bob.
-You can control its position.""",
-            o_text="Click on the green patch to move the robot there.",
-            objective_function=lambda s: s.lab[6, 8] % 1000 == 201,
-            next_step=step_2)
-
+step_1()

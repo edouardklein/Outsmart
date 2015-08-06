@@ -122,7 +122,7 @@ def lab(s):
     """Switch the view to the lab"""
     s.ui.terrain = get_lab
     s.ui.set_terrain = set_lab
-    s.ui.walk = osmt.walk_wild
+    s.ui.walk = osmt.walk_lab
     s.ui.active = LAB_ACTIVE.copy()
     s.log_text = "Now back to the lab."
     return s
