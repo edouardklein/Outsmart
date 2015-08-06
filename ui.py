@@ -1,8 +1,5 @@
-import importlib
 from outsmart import return_copy
 import outsmart as osmt
-import pyglet
-import glob
 
 
 ############################################
@@ -38,26 +35,6 @@ def defeat(s):
 ############################################
 # Modes
 ############################################
-def import_lvl(name):
-    # https://stackoverflow.com/questions/27381264/python-3-4-how-to-import-a-module-given-the-full-path
-    fname = glob.glob(name+'/*.py')[0]
-    importlib.machinery.SourceFileLoader(name, fname).load_module()
-
-
-def level_buttons():
-    lvl_directory = "levels"  # DEFAULT
-    y_offset = 0
-    answer = {}
-    for dir in glob.glob(lvl_directory+"/*"):
-        img = pyglet.image.load(dir+"/img.png")
-        name = dir.split('/')[1][2:]  # FIXME use os.path.split()
-        print("Dir : "+dir+", name :"+name)
-        x = osmt.WINDOW.width//2-img.width//2
-        y = osmt.WINDOW.height-img.height - y_offset
-        y_offset += img.height+20
-        answer["main_"+name] = [x, y, pyglet.image.load(dir+"/img.png"),
-                                lambda dir=dir: import_lvl(dir)]
-    return answer
 
 ALL_INACTIVE = {k: False for k in ["lab_wild_reset", "lab_train",
                                    "editor_load", "lab_step",
@@ -67,7 +44,7 @@ ALL_INACTIVE = {k: False for k in ["lab_wild_reset", "lab_train",
                                    "lab_current_tile", "lab_wild_step",
                                    "lab_right",
                                    "lab_left", "lab_up", "lab_down",
-                                   "lab_pick"]+list(level_buttons().keys())}
+                                   "lab_pick"]}
 
 LAB_ACTIVE = ALL_INACTIVE.copy()
 LAB_ACTIVE.update({k: True for k in ALL_INACTIVE if "lab_" in k})
@@ -77,9 +54,6 @@ WILD_ACTIVE.update({k: True for k in ALL_INACTIVE if "wild_" in k})
 
 EDITOR_ACTIVE = LAB_ACTIVE.copy()
 WILD_ACTIVE.update({k: True for k in ALL_INACTIVE if "editor_" in k})
-
-MAIN_MENU_ACTIVE = ALL_INACTIVE.copy()
-MAIN_MENU_ACTIVE.update({k: True for k in level_buttons()})
 
 
 ############################################
@@ -149,13 +123,6 @@ def lab(s):
     s.ui.walk = osmt.walk_wild
     s.ui.active = LAB_ACTIVE.copy()
     s.log_text = "Now back to the lab."
-    return s
-
-
-@return_copy
-def _quit(s):
-    """Go to main menu"""
-    s.ui.active = MAIN_MENU_ACTIVE.copy()
     return s
 
 

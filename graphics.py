@@ -1,6 +1,7 @@
 import pyglet
 from pyglet.window import key
 import math
+from outsmart import return_copy
 import outsmart as osmt
 import ui
 import glob
@@ -10,6 +11,9 @@ import hashlib
 import os
 import sys
 import subprocess
+import importlib
+
+STATE = None
 
 
 def _state(func):
@@ -76,6 +80,28 @@ def check_buttons(s, _x, _y, button):
     return False
 
 
+def import_lvl(name):
+    # https://stackoverflow.com/questions/27381264/python-3-4-how-to-import-a-module-given-the-full-path
+    fname = glob.glob(name+'/*.py')[0]
+    importlib.machinery.SourceFileLoader(name, fname).load_module()
+
+
+def level_buttons():
+    lvl_directory = "levels"  # DEFAULT
+    y_offset = 0
+    answer = {}
+    for dir in glob.glob(lvl_directory+"/*"):
+        img = pyglet.image.load(dir+"/img.png")
+        name = dir.split('/')[1][2:]  # FIXME use os.path.split()
+        print("Dir : "+dir+", name :"+name)
+        x = WINDOW.width//2 - img.width//2
+        y = WINDOW.height-img.height - y_offset
+        y_offset += img.height+20
+        answer["main_"+name] = [x, y, pyglet.image.load(dir+"/img.png"),
+                                lambda dir=dir: import_lvl(dir)]
+    return answer
+
+
 BUTTONS = {"lab_wild_reset": [10, 50, "Reset", lambda: _state(ui.reset)],
            "lab_train": [10, 100, "Train", lambda:  _state(ui.train)],
            "lab_step": [10, 150, "Step", lambda:  _state(ui.step)],
@@ -84,7 +110,7 @@ BUTTONS = {"lab_wild_reset": [10, 50, "Reset", lambda: _state(ui.reset)],
            "lab_go_wild": [10, 200, "Wild", lambda:  _state(ui.wild)],
            "wild_go_lab": [200, 200, "Lab", lambda:  _state(ui.lab)],
            "lab_wild_quit": [10, 250, "Exit to main menu",
-                             lambda: _state(ui._quit())],
+                             lambda: _state(_quit())],
 
            "retry": [500, 500,
                      pyglet.image.load('img/retry.png'), _state(ui.retry)],
@@ -98,7 +124,6 @@ BUTTONS = {"lab_wild_reset": [10, 50, "Reset", lambda: _state(ui.reset)],
            "lab_current_tile": [1000, 50,
                                 lambda s: nb2images(ui.current_tile(s))[0],
                                 lambda: _state(ui.tile_tool)]}
-BUTTONS.udpate(ui.level_buttons())
 
 
 ############################################
@@ -394,9 +419,24 @@ def on_mouse_press(x, y, button, modifiers):
     if button == pyglet.window.mouse.LEFT:
         STATE = ui.click(STATE, i, j)  # FIXME handle multiple args in _state
 
+
 ############################################
 # Controller code
 ############################################
+@return_copy
+def _quit(s):
+    """Go to main menu"""
+    s.ui.active = MAIN_MENU_ACTIVE.copy()
+    return s
+
+
 STATE = osmt.State()
 STATE.ui = ui.UI()
-STATE.ui.active = ui.MAIN_MENU_ACTIVE.copy()
+ui.ALL_INACTIVE.update({"editor_wild_lab_terrain": False})
+# Main menu hack
+_d = level_buttons()
+BUTTONS.update(_d)
+MAIN_MENU_ACTIVE = ui.ALL_INACTIVE.copy()
+MAIN_MENU_ACTIVE.update({k: True for k in _d})
+ui.ALL_INACTIVE = {k: False for k in MAIN_MENU_ACTIVE}
+STATE.ui.active = MAIN_MENU_ACTIVE.copy()
