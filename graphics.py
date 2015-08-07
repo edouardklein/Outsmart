@@ -30,7 +30,7 @@ def draw_text(text_list, center=False):
     anchor_y = 'baseline' if not center else 'center'
     for x, y, size, t in text_list:
         label = pyglet.text.Label(t, x=x, y=y,
-                                  font_name='KenVector Future Thin Regular',
+                                  font_name='KenVector Future Thin',
                                   font_size=size,
                                   anchor_x=anchor_x,
                                   anchor_y=anchor_y)
