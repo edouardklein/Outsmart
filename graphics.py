@@ -223,9 +223,9 @@ def play(text="", media=None, media_file=""):
     elif media_file:
         play_file(media_file)
     else:  # text
-        if text.startswith("Defeat !"):
-            play_file('snd/dead.mp3')  # Play defeat song
-            return
+        #if text.startswith("Defeat !"):
+        #    play_file('snd/dead.mp3')  # Play defeat song
+        #    return  # We don't have the authorization to play the song (yet ?)
         play_text(text)
 
 
