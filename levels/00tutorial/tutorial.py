@@ -52,12 +52,11 @@ This will allow you to train him like you would a dog or a rat."""
 def step_3(s):
     """Rocks spawning"""
     def success(s):
-        #HERE : success does not toggle
         robot_loc = np.argwhere(s.lab % 10 != 0)[0]
         i_list = [robot_loc[0]-1, robot_loc[0], robot_loc[0]+1]
-        i_list = map(lambda i: i % (osmt.I_MAX+1), i_list)
+        i_list = list(map(lambda i: i % (osmt.I_MAX+1), i_list))
         j_list = [robot_loc[1]-1, robot_loc[1], robot_loc[1]+1]
-        j_list = map(lambda j: j % (osmt.J_MAX+1), j_list)
+        j_list = list(map(lambda j: j % (osmt.J_MAX+1), j_list))
         rock_nearby = False
         for i in i_list:
             for j in j_list:
@@ -97,6 +96,7 @@ This is the same here, only with robots."""
 @return_copy
 def step_5(s):
     """Trying the policy out"""
+    s.ui.active["lab_wild_step"] = True
     s.ui.story_text = """Good Job !
 Let's see what Bob has learnt by stepping
 through its new-found "policy"."""
@@ -104,7 +104,7 @@ through its new-found "policy"."""
 through Bob's actions until Bob collects the rocks.
 If it doesnt work, you may have to train Bob
 again and then press [s]"""
-    s.obj_func = lambda s: len(np.argwhere(s.lab//100 == 4)) == 0,
+    s.obj_func = lambda s: len(np.argwhere(s.lab//100 == 4)) == 0
     s.next_func = step_6
     return s
 
@@ -117,7 +117,7 @@ def step_6(s):
 very interesting to begin with.
 Let's reset Bob."""
     s.ui.obj_text = """Reset Bob by clicking on the "Reset" button."""
-    s.obj_func = lambda s: np.linalg.norm(s.rl.omega) == 0,
+    s.obj_func = lambda s: np.linalg.norm(s.rl.omega) == 0
     s.next_func = step_7
     return s
 
@@ -129,7 +129,7 @@ def step_7(s):
     s.ui.story_text = """Let's see what kind of problems we will have to solve
 in the wild."""
     s.ui.obj_text = """Go into the wild by clicking on the "Wild" button."""
-    s.obj_func = lambda s: s.ui.terrain == ui.get_wild,
+    s.obj_func = lambda s: s.ui.terrain == ui.get_wild
     s.next_func = step_8
     return s
 
@@ -148,18 +148,22 @@ This will not happen everytime.
 Try again and see for yourself."""
         s.ui.obj_text = """Click on the "Retry" button"""
         osmt.STATE.active_ui["retry"] = True
+        return s
     s.ui.victory = victory
 
     @return_copy
     def defeat(s):
         """Pedagogy is the art of inflicting crushing defeats"""
-        s = ui.defeat()
+        s = ui.defeat(s)
         s.ui.story_text = """The wiping out of the human race
 is just a temporary setback.
 We can time travel back to before you killed us all and try again."""
         s.ui.obj_text = """Click on the "Retry" button"""
         s.nb_resources = 0
-        g.BUTTONS["retry"][-1] = lambda s: step_9(s)
+        g.BUTTONS["retry"][-1] = lambda: g._state(step_9)
+        s.ui.active["obj_text"] = True
+        s.ui.active["story_text"] = True
+        return s
     s.ui.defeat = defeat
 
     s.ui.story_text = """Well, this one is not Bob...

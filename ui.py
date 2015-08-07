@@ -29,6 +29,7 @@ def defeat(s):
     s.ui.active = ALL_INACTIVE.copy()
     s.ui.active["retry"] = True
     s.ui.active["lab_wild_quit"] = True
+    s.ui.active["end_text"] = True
     return s
 
 
@@ -37,8 +38,7 @@ def defeat(s):
 ############################################
 
 ALL_INACTIVE = {k: False for k in ["lab_wild_reset", "lab_train",
-                                   "editor_load", "lab_step",
-                                   "editor_save", "lab_go_wild",
+                                   "editor_load", "editor_save", "lab_go_wild",
                                    "wild_go_lab", "lab_wild_quit", "retry",
                                    "lab_prev_tile", "lab_next_tile",
                                    "lab_current_tile", "lab_wild_step",
@@ -54,9 +54,10 @@ LAB_ACTIVE.update({k: True for k in ALL_INACTIVE if "_text" in k})
 
 WILD_ACTIVE = ALL_INACTIVE.copy()
 WILD_ACTIVE.update({k: True for k in ALL_INACTIVE if "wild_" in k})
+WILD_ACTIVE.update({k: True for k in ALL_INACTIVE if "_text" in k})
 
 EDITOR_ACTIVE = LAB_ACTIVE.copy()
-WILD_ACTIVE.update({k: True for k in ALL_INACTIVE if "editor_" in k})
+EDITOR_ACTIVE.update({k: True for k in ALL_INACTIVE if "editor_" in k})
 
 
 ############################################

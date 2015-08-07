@@ -105,16 +105,17 @@ def level_buttons():
 
 BUTTONS = {"lab_wild_reset": [10, 50, "Reset", lambda: _state(ui.reset)],
            "lab_train": [10, 100, "Train", lambda:  _state(ui.train)],
-           "lab_step": [10, 150, "Step", lambda:  _state(ui.step)],
+           "lab_wild_step": [10, 150, "Step", lambda:  _state(ui.step)],
            "editor_load": [10, 200, "Load", lambda:  _state(ui.load)],
            "editor_save": [200, 200, "Save", lambda:  _state(ui.save)],
-           "lab_go_wild": [10, 200, "Wild", lambda:  _state(ui.wild)],
-           "wild_go_lab": [200, 200, "Lab", lambda:  _state(ui.lab)],
-           "lab_wild_quit": [10, 250, "Exit to main menu",
+           "lab_go_wild": [10, 250, "Wild", lambda:  _state(ui.wild)],
+           "wild_go_lab": [200, 250, "Lab", lambda:  _state(ui.lab)],
+           "lab_wild_quit": [10, 300, "Exit",
                              lambda: _state(_quit)],
 
            "retry": [500, 500,
-                     pyglet.image.load('img/retry.png'), _state(ui.retry)],
+                     lambda s: pyglet.image.load('img/retry.png'),
+                     lambda: _state(ui.retry)],
 
            "lab_prev_tile": [1000, 20,
                              lambda s: pyglet.image.load('img/larrow.png'),
@@ -356,9 +357,9 @@ def on_draw():
     global STATE
     WINDOW.clear()
     if STATE.victorious(STATE):
-        STATE = ui.victory(STATE)
+        STATE = STATE.ui.victory(STATE)
     elif STATE.losing(STATE):
-        STATE = ui.defeat(STATE)
+        STATE = STATE.ui.defeat(STATE)
     elif STATE.obj_func(STATE):
         STATE = STATE.next_func(STATE)
     draw_assets(STATE)
@@ -374,7 +375,7 @@ def on_mouse_motion(x, y, dx, dy):
         STATE = ui.cursor_out(STATE)
 
 
-BINDINGS = {key.S: ["lab_step", lambda: _state(ui.step)],
+BINDINGS = {key.S: ["lab_wild_step", lambda: _state(ui.step)],
             key.Q: ["lab_wild_quit", lambda: _state(_quit)],
             key.W: ["lab_go_wild", lambda: _state(ui.wild)],
             key.L: ["wild_go_lab", lambda: _state(ui.lab)],
@@ -439,4 +440,6 @@ BUTTONS.update(_d)
 MAIN_MENU_ACTIVE = ui.ALL_INACTIVE.copy()
 MAIN_MENU_ACTIVE.update({k: True for k in _d})
 ui.ALL_INACTIVE = {k: False for k in MAIN_MENU_ACTIVE}
+ui.WILD_ACTIVE.update({k: False for k in _d})
+ui.LAB_ACTIVE.update({k: False for k in _d})
 STATE.ui.active = MAIN_MENU_ACTIVE.copy()

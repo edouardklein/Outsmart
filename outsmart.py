@@ -22,6 +22,13 @@ def return_copy(f, *args):
 
 
 @return_copy
+def reset(s):
+    """Reset the learned training"""
+    s.rl = rl.RL(4*9*len(ACTIONS), ACTIONS, phi)
+    return s
+
+
+@return_copy
 def load_state(s, filename):
     s.lab = np.loadtxt(filename+'.lab')
     s.wild = np.loadtxt(filename+'.wild')

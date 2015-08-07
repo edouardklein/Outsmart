@@ -51,10 +51,10 @@ def q_learning(rl, sars):
             Y.append(new)
         X = np.array(X)
         Y = np.array(Y)
-        answer = np.dot(np.dot(np.linalg.pinv(np.dot(X.T, X)), X.T), Y)
+        answer.omega = np.dot(np.dot(np.linalg.pinv(np.dot(X.T, X)), X.T), Y)
         old_q = np.array([q_func(s, a) for s, a, _, _ in sars])
-        Q_func = q_function(answer)
-        new_q = np.array([Q_func(s, a) for s, a, _, _ in sars])
+        q_func = q_function(answer.omega, answer.phi)
+        new_q = np.array([q_func(s, a) for s, a, _, _ in sars])
         d = np.linalg.norm(old_q-new_q)
         print("Iteration %d, |Q(s,a) - Q'(s,a)| is %f" % (q_iter, d))
         q_iter += 1
