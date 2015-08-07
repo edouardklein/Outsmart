@@ -471,4 +471,5 @@ MAIN_MENU_ACTIVE.update({k: True for k in _d})
 ui.ALL_INACTIVE = {k: False for k in MAIN_MENU_ACTIVE}
 ui.WILD_ACTIVE.update({k: False for k in _d})
 ui.LAB_ACTIVE.update({k: False for k in _d})
+ui.EDITOR_ACTIVE.update({k: False for k in _d})
 STATE.ui.active = MAIN_MENU_ACTIVE.copy()
