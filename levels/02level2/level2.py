@@ -12,11 +12,12 @@ lvl_directory = os.path.dirname(os.path.abspath(__file__))
 @return_copy
 def step_1(s):
     """Move the robot"""
-    s.ui.filename = lvl_directory+"/level1"
+    s.ui.filename = lvl_directory+"/level2"
     s = ui.load(s)
     s = ui.lab(s)
     s.ui.log_text = ""
-    s.ui.story_text = """Neither bob nor the red robot can go through white rocks."""
+    s.ui.story_text = """This is slightly more challenging than the tutorial.
+For a real challenge try to train bob with only two crystals."""
     s.ui.obj_text = "Make the red robot go into the trap"
     return s
 

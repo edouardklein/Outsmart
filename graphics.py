@@ -323,7 +323,7 @@ def draw_end_text(text):
     l = text.split("\n")
     draw_text([[WINDOW.width//2, WINDOW.height//2, 36, l[0]]],
               center=True)
-    draw_text(xy_text(300, 300, l[1:]))
+    draw_text(xy_text(500, 500, l[1:]))
 
 
 def draw_all_texts(s):
