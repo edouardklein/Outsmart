@@ -40,7 +40,7 @@ def q_learning(rl, sars):
     d = float('inf')
     q_iter = 0
     assert not all([r == 0 for _, _, r, _ in sars])
-    while d > 1. and q_iter < 5:
+    while d > .1 and q_iter < 50:
         X = []
         Y = []
         for s1, a, r, s2 in sars:
