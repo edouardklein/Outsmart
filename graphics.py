@@ -49,7 +49,7 @@ def draw_text_button(x, y, text):
     for i in range(0, math.ceil(pixel_length/16)):
         sprite = pyglet.sprite.Sprite(BUTTON_MID, x=x+6+i*16, y=y)
         sprite.draw()
-    sprite = pyglet.sprite.Sprite(BUTTON_RIGHT, x=x+pixel_length, y=y)
+    sprite = pyglet.sprite.Sprite(BUTTON_RIGHT, x=x+6+(i+1)*16, y=y)
     sprite.draw()
     draw_text([[x+6, y+9, 12, text]])
 
