@@ -14,7 +14,7 @@ def step_1(s):
     """Move the robot"""
     s.ui.filename = lvl_directory+"/level2"
     s = ui.load(s)
-    s = ui.lab(s)
+    s = ui.wild(s)
     s.ui.log_text = ""
     s.ui.story_text = """This is slightly more challenging than the tutorial.
 For a real challenge try to train bob with only two crystals."""

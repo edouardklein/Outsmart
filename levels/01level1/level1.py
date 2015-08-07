@@ -14,7 +14,7 @@ def step_1(s):
     """Move the robot"""
     s.ui.filename = lvl_directory+"/level1"
     s = ui.load(s)
-    s = ui.lab(s)
+    s = ui.wild(s)
     s.ui.log_text = ""
     s.ui.story_text = """Neither bob nor the red robot can go through white rocks."""
     s.ui.obj_text = "Make the red robot go into the trap"

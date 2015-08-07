@@ -14,7 +14,7 @@ def step_1(s):
     """Move the robot"""
     s.ui.filename = lvl_directory+"/level3"
     s = ui.load(s)
-    s = ui.lab(s)
+    s = ui.wild(s)
     s.ui.log_text = ""
     s.ui.story_text = """It is impossible to lose on that level. Try to win by
 outsmarting the red robot, and not by making it step through a long random walk."""
