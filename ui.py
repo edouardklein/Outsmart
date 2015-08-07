@@ -9,11 +9,14 @@ import outsmart as osmt
 def victory(s):
     """Print victory, let the option to leave to main menu"""
     s.ui.end_text = """VICTORY !"""
-    s.ui.story_text = ""
+    s.ui.story_text = "Victory !"
     s.ui.obj_text = ""
     s.ui.log_text = ""
     s.ui.active = ALL_INACTIVE.copy()
     s.ui.active["lab_wild_quit"] = True
+    s.ui.active["editor_wild_lab_terrain"] = True
+    s.ui.active["end_text"] = True
+    s.ui.active["story_text"] = True
     return s
 
 
@@ -23,13 +26,15 @@ def defeat(s):
     s.ui.end_text = "Defeat !\n"
     "The robots grew in number and wiped out "
     "the human race."
-    s.ui.story_text = ""
+    s.ui.story_text = "Defeat !"
     s.ui.obj_text = ""
     s.ui.log_text = ""
     s.ui.active = ALL_INACTIVE.copy()
     s.ui.active["retry"] = True
     s.ui.active["lab_wild_quit"] = True
     s.ui.active["end_text"] = True
+    s.ui.active["editor_wild_lab_terrain"] = True
+    s.ui.active["story_text"] = True
     return s
 
 
@@ -68,7 +73,7 @@ def reset(s):
     """Reset the Q-function of bob or the position of the red robot"""
     if s.ui.terrain == get_lab:
         s = osmt.reset(s)
-        s.log_text = "Bob's learning has been reset."
+        s.ui.log_text = "Bob's learning has been reset."
     else:  # Wild
         s.wild = CHECKPOINT.wild.copy()
     return s

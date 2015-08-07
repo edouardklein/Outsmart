@@ -220,6 +220,7 @@ def play(text="", media=None, media_file=""):
     else:  # text
         if text.startswith("Defeat !"):
             play_file('snd/dead.mp3')  # Play defeat song
+            return
         play_text(text)
 
 
