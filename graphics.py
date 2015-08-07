@@ -420,6 +420,9 @@ def on_mouse_press(x, y, button, modifiers):
     global STATE
     if check_buttons(STATE, x, y, button):
         return
+    if button == pyglet.window.mouse.RIGHT:
+        if STATE.ui.active["lab_current_tile"]:
+            _state(ui.tile_tool)
     i, j = xy2ij(x, y)
     if i not in range(osmt.I_MAX+1) or j not in range(osmt.J_MAX+1):
         return
