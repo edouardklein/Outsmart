@@ -17,7 +17,8 @@ def step_1(s):
     s = ui.wild(s)
     s.ui.log_text = ""
     s.ui.story_text = """It is impossible to lose on that level. Try to win by
-outsmarting the red robot, and not by making it step through a long random walk."""
+outsmarting the red robot,
+and not by making it step through a long random walk."""
     s.ui.obj_text = "Make the red robot go into the trap"
     return s
 

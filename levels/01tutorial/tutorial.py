@@ -91,8 +91,8 @@ as a motivator to make Bob do what you want.
 You can use rocks to block its path.
 When dealing with animals food is used as a reward.
 This is the same here, only with robots."""
-    s.ui.obj_text = "Try again to train Bob by clicking on the"
-    """"Train" button."""
+    s.ui.obj_text = """Try again to train Bob by clicking on the
+"Train" button."""
     s.obj_func = lambda s: s.ui.log_text.startswith("Training")
     s.next_func = step_5
     return s
