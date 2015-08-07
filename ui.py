@@ -65,9 +65,12 @@ EDITOR_ACTIVE.update({k: True for k in ALL_INACTIVE if "editor_" in k})
 ############################################
 @return_copy
 def reset(s):
-    """Reset the Q-function of the robot"""
-    s = osmt.reset(s)
-    s.log_text = "Bob's learning has been reset."
+    """Reset the Q-function of bob or the position of the red robot"""
+    if s.ui.terrain == get_lab:
+        s = osmt.reset(s)
+        s.log_text = "Bob's learning has been reset."
+    else:  # Wild
+        s.wild = CHECKPOINT.wild.copy()
     return s
 
 
@@ -195,11 +198,10 @@ def cursor_out(s):
 def click(s, i, j):
     """Validate terrain modification if appropriate"""
     if s.ui.terrain == get_wild:
-        return
-    m = s.ui.terrain(s).copy()
-    if s.ui.tile_tool:
-        m[i, j] = s.ui.current_tile
-    else:
+        return s
+    m = s.ui.terrain(s).copy()  # Will have tile modification
+    # if tile_tool is True, see get_lab()
+    if not s.ui.tile_tool:
         m = osmt.move_robot(m, i, j)
     s = s.ui.set_terrain(s, m)
     return s
@@ -214,7 +216,8 @@ def set_lab(s, m):
 def get_lab(s):
     answer = s.lab.copy()
     if s.ui.cursor and s.ui.tile_tool:
-        answer[tuple(s.ui.cursor)] = s.ui.current_tile
+        c = tuple(s.ui.cursor)
+        answer[c] = s.ui.current_tile + answer[c] % 10
     return answer
 
 

@@ -190,7 +190,8 @@ ressource collection."""
 @return_copy
 def step_9(s):
     """Back to training"""
-    ## FIXME erase all step 8 modifs (victory, obj, etc.)
+    s.ui.defeat = ui.defeat
+    s.ui.vitcory = ui.victory
     s.ui.end_text = ""
     s.ui.active["retry"] = False
     s = ui.wild(s)
@@ -227,7 +228,7 @@ Complete it so that it looks like the one that was ahead of the
 red robot in the wild.
 Create only the grassy path, not the crystals around it.
 You will use the crystals later to train Bob."""
-    s.ui.obj_text = """Right click on the appropriate tiles to complete
+    s.ui.obj_text = """Use the mod tool on the appropriate tiles to complete
 the path."""
     s.obj_func = grassy_path
     s.next_func = step_11
@@ -248,6 +249,7 @@ if you tricked the red robot.
 If the red robot does not follow the path,
 click reset (in the wild) to send it back
 to its original position."""
+    s.ui.obj_text = """Make the red robot walk into the trap."""
     return s
 
 
