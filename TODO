@@ -1,3 +1,11 @@
-* [Bug] Le sous texte dans end_texte n'apparait pas, du coup le mot "growth" n'apparait pas direcement.
+﻿* [Bug] Le sous texte dans end_texte n'apparait pas, du coup le mot "growth" n'apparait pas direcement.
 * [Ajout] Rajouter la vidéo d'intro
-
+* [Bug] Sons superposés si l'on quitte puis relance un niveau
+* [Bug] Boutons graphiquement bugués: il y a un BUTTON_CENTER de trop la plupart du temps
+* [Ajout] Bouton exit sur menu
+* [Ajout] Bouton exit dans tuto
+* [Ajout] Clic droit pour deselectionner la tile courante
+* [Ajout] Commencer les niveaux dans le wild? ok
+* [Ajout] Nom des tiles en plus des images dans la gallery?
+* [Ajout] Autogénération des miniatures pour le menu
+* [Ajout] Nombre de tiles limitées
