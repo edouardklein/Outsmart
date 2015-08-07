@@ -359,6 +359,9 @@ def draw_assets(s):
 def on_draw():
     global STATE
     WINDOW.clear()
+    t = PLAYER.get_texture()
+    if t:
+        t.blit(0, 0)
     if STATE.victorious(STATE):
         STATE = STATE.ui.victory(STATE)
     elif STATE.losing(STATE):
@@ -430,8 +433,10 @@ def on_mouse_press(x, y, button, modifiers):
 @return_copy
 def _quit(s):
     """Go to main menu"""
+    global PLAYER
     s.ui.active = MAIN_MENU_ACTIVE.copy()
     s.victorious = lambda s: False
+    PLAYER.next_source()
     return s
 
 
