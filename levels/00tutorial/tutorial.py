@@ -17,6 +17,7 @@ def step_1(s):
     s = ui.lab(s)
     s.ui.active = ui.ALL_INACTIVE
     s.ui.active["editor_wild_lab_terrain"] = True
+    s.ui.active["lab_wild_quit"] = True
     s.ui.active.update({k: True for k in ui.ALL_INACTIVE
                         if "_text" in k})
     s.ui.log_text = ""
