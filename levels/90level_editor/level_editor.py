@@ -22,7 +22,7 @@ def wild(s):
 @return_copy
 def lab(s):
     s = ui.lab(s)
-    s.ui.active = EDITOR_ACTIVE.copy()
+    s.ui.active = ui.EDITOR_ACTIVE.copy()
     return s
 
 g.BUTTONS["lab_go_wild"][-1] = lambda: g._state(wild)
