@@ -58,8 +58,8 @@ def draw_buttons(s):
     """Draw text and images buttons"""
     for [x, y, content, _] in [BUTTONS[k] for k in BUTTONS
                                if s.ui.active[k]]:
-        if type(content) == str:
-            draw_text_button(x, y, content)
+        if type(content(s)) == str:
+            draw_text_button(x, y, content(s))
         else:  # image button
             sprite = pyglet.sprite.Sprite(content(s), x=x, y=y)
             sprite.draw()
@@ -69,8 +69,8 @@ def check_buttons(s, _x, _y, button):
     if button == pyglet.window.mouse.LEFT:
         for [x, y, content, func] in [BUTTONS[k] for k in BUTTONS
                                       if STATE.ui.active[k]]:
-            if type(content) == str:
-                max_x = x+len(content)*10.5+10
+            if type(content(s)) == str:
+                max_x = x+len(content(s))*10.5+10
                 max_y = y+26
             else:  # image button
                 max_x = x+content(s).width
@@ -103,30 +103,33 @@ def level_buttons():
     return answer
 
 
-BUTTONS = {"lab_wild_reset": [10, 50, "Reset", lambda: _state(ui.reset)],
-           "lab_train": [10, 100, "Train", lambda:  _state(ui.train)],
-           "lab_wild_step": [10, 150, "Step", lambda:  _state(ui.step)],
-           "editor_load": [10, 200, "Load", lambda:  _state(ui.load)],
-           "editor_save": [200, 200, "Save", lambda:  _state(ui.save)],
-           "lab_go_wild": [10, 250, "Wild", lambda:  _state(ui.wild)],
-           "lab_copy_wild": [100, 250, "Copy wild",
+BUTTONS = {"lab_wild_reset": [10, 50, lambda s: "Reset", lambda: _state(ui.reset)],
+           "lab_train": [10, 100, lambda s: "Train", lambda:  _state(ui.train)],
+           "lab_wild_step": [10, 150, lambda s: "Step", lambda:  _state(ui.step)],
+           "editor_load": [10, 200, lambda s: "Load", lambda:  _state(ui.load)],
+           "editor_save": [200, 200, lambda s: "Save", lambda:  _state(ui.save)],
+           "lab_go_wild": [10, 250, lambda s: "Wild", lambda:  _state(ui.wild)],
+           "lab_copy_wild": [100, 250, lambda s: "Copy wild",
                              lambda:  _state(ui.copy_wild)],
-           "wild_go_lab": [200, 250, "Lab", lambda:  _state(ui.lab)],
-           "lab_wild_quit": [10, 300, "Exit",
+           "wild_go_lab": [200, 250, lambda s: "Lab", lambda:  _state(ui.lab)],
+           "lab_wild_quit": [10, 300, lambda s: "Exit",
                              lambda: _state(_quit)],
 
            "retry": [500, 500,
                      lambda s: pyglet.image.load('img/retry.png'),
                      lambda: _state(ui.retry)],
 
-           "lab_prev_tile": [1000, 20,
+           "lab_prev_tile": [980, 50,
                              lambda s: pyglet.image.load('img/larrow.png'),
                              lambda: _state(ui.prev_tile)],
-           "lab_next_tile": [1100, 20,
+           "lab_next_tile": [1120, 50,
                              lambda s: pyglet.image.load('img/rarrow.png'),
                              lambda: _state(ui.next_tile)],
            "lab_current_tile": [1000, 50,
                                 lambda s: nb2images(s.ui.current_tile)[0],
+                                lambda: _state(ui.tile_tool)],
+           "lab_current_tile_legend": [1020, 10,
+                                lambda s: ui.tile_name(s.ui.current_tile),
                                 lambda: _state(ui.tile_tool)]}
 
 

@@ -50,7 +50,7 @@ ALL_INACTIVE = {k: False for k in ["lab_wild_reset", "lab_train",
                                    "lab_right", "lab_copy_wild",
                                    "lab_left", "lab_up", "lab_down",
                                    "lab_pick", "story_text", "obj_text",
-                                   "log_text", "end_text",
+                                   "log_text", "end_text", "lab_current_tile_legend",
                                    "editor_wild_lab_terrain"]}
 
 LAB_ACTIVE = ALL_INACTIVE.copy()
@@ -161,6 +161,18 @@ def prev_tile(s):
     i = (GALLERY.index(s.ui.current_tile) - 1) % len(GALLERY)
     s.ui.current_tile = GALLERY[i]
     return s
+
+
+def tile_name(n):
+    """Return the name of the tile given the number"""
+    tile_type = n % 1000 // 100
+    answer = {1: "Earth",
+              2: "Grass",
+              3: "Crystals",
+              4: "Rocks"}[tile_type]
+    if n % 100 // 10 == 1:
+        answer += " (Trap)"
+    return answer
 
 
 @return_copy
