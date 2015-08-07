@@ -47,7 +47,7 @@ ALL_INACTIVE = {k: False for k in ["lab_wild_reset", "lab_train",
                                    "wild_go_lab", "lab_wild_quit", "retry",
                                    "lab_prev_tile", "lab_next_tile",
                                    "lab_current_tile", "lab_wild_step",
-                                   "lab_right",
+                                   "lab_right", "lab_copy_wild",
                                    "lab_left", "lab_up", "lab_down",
                                    "lab_pick", "story_text", "obj_text",
                                    "log_text", "end_text",
@@ -216,6 +216,12 @@ def click(s, i, j):
 def set_lab(s, m):
     s.lab = m.copy()
     return s
+
+
+@return_copy
+def copy_wild(s):
+    """Transmit request to copy wild's terrain"""
+    return osmt.copy_wild(s)
 
 
 def get_lab(s):

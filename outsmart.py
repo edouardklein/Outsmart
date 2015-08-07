@@ -49,6 +49,13 @@ def random_terrain():
     answer[0, 0] += 1
     return answer
 
+@return_copy
+def copy_wild(s):
+    """Copy the wild's terrain in the lab"""
+    s.lab = s.wild.copy()
+    robot_loc = np.argwhere(s.lab % 10 != 0)[0]
+    s.lab[tuple(robot_loc)] = s.lab[tuple(robot_loc)]//10*10+1
+    return s
 
 ############################################
 # Game dynamics
