@@ -214,11 +214,11 @@ def cursor_out(s):
 @return_copy
 def click(s, i, j):
     """Validate terrain modification if appropriate"""
-    if s.ui.terrain == get_wild:
-        return s
     m = s.ui.terrain(s).copy()  # Will have tile modification
     # if tile_tool is True, see get_lab()
-    if not s.ui.tile_tool:
+    #FIXME: Next line hideous
+    if not s.ui.tile_tool and (s.ui.terrain == get_lab or
+                               (s.ui.terrain == get_wild and s.ui.active["editor_save"])):
         m = osmt.move_robot(m, i, j)
     s = s.ui.set_terrain(s, m)
     return s
@@ -251,7 +251,14 @@ def set_wild(s, m):
 
 
 def get_wild(s):
-    return s.wild.copy()
+    answer = s.wild.copy()
+    # FIXME: Yuk ! Horrible code, but deadline is near.
+    if s.ui.active["editor_load"]:  # In editor ?
+        if s.ui.cursor and s.ui.tile_tool:
+            c = tuple(s.ui.cursor)
+            answer[c] = s.ui.current_tile + answer[c] % 10
+    # FIXME: End horrible code
+    return answer
 
 
 class UI():
