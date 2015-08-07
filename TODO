@@ -1,17 +1,18 @@
 ﻿* [Bug] Le sous texte dans end_texte n'apparait pas, du coup le mot "growth" n'apparait pas direcement.
 * [Bug] Sons superposés si l'on quitte puis relance un niveau
-* [Bug] Boutons graphiquement bugués: il y a un BUTTON_CENTER de trop la plupart du temps
-* [Bug] Mauvaise police sur Windows et linux done
+k [Bug] Boutons graphiquement bugués: il y a un BUTTON_CENTER de trop la plupart du temps
+k [Bug] Mauvaise police sur Windows et linux
+* [Bug] Overlapping des textes d'objectif et de story
 * [Ajout] Bouton exit sur menu
-* [Ajout] Bouton exit dans tuto done
-* [Ajout] Clic droit pour deselectionner la tile courante done
-* [Ajout] Commencer les niveaux dans le wild? done
-* [Ajout] Nom des tiles en plus des images dans la gallery? -> Doudou
+k [Ajout] Bouton exit dans tuto
+k [Ajout] Clic droit pour deselectionner la tile courante
+k [Ajout] Commencer les niveaux dans le wild?
+k [Ajout] Nom des tiles en plus des images dans la gallery?
 * [Ajout] Autogénération des miniatures pour le menu
 * [Ajout] Nombre de tiles limitées
 * [Ajout] Crédits à la fin (tiles, robot, musique, avbin, nous)
 * [Ajout] Un README sur GitHub
-* [Ajout] Rajouter la vidéo d'intro done
+k [Ajout] Rajouter la vidéo d'intro
 
 * Proposition : Soumission sur Reddit (/r/machinelearning, /r/shamelessplug, /r/gaming ?)
 * Soumission sur Hacker News
