@@ -86,6 +86,8 @@ def move_robot(m, i, j, di=0, dj=0):
         i = robot_loc[0]
     if j is None:
         j = robot_loc[1]
+    if m[(i + di) % (I_MAX+1), (j + dj) % (J_MAX+1)] // 100 == 4:  # ROCKS
+        return m  # Do not move
     robot = m[tuple(robot_loc)] % 10
     m[tuple(robot_loc)] = m[tuple(robot_loc)] // 10 * 10
     m[(i + di) % (I_MAX+1), (j + dj) % (J_MAX+1)] += robot

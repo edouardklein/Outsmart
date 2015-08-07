@@ -322,7 +322,7 @@ def draw_end_text(text):
     l = text.split("\n")
     draw_text([[WINDOW.width//2, WINDOW.height//2, 36, l[0]]],
               center=True)
-    draw_text(xy_text(300, 300, '\n'.join(l[1:])))
+    draw_text(xy_text(300, 300, l[1:]))
 
 
 def draw_all_texts(s):
@@ -332,7 +332,7 @@ def draw_all_texts(s):
     draw_end_text(s.ui.end_text) if s.ui.active["end_text"] else None
 
 
-############################################
+##################################N##########
 # Events
 ############################################
 WINDOW = pyglet.window.Window(fullscreen=True)
@@ -385,9 +385,9 @@ BINDINGS = {key.S: ["lab_wild_step", lambda: _state(ui.step)],
                         lambda: _state(lambda s: ui.apply_action(s, "RIGHT"))],
             key.LEFT: ["lab_left",
                        lambda: _state(lambda s: ui.apply_action(s, "LEFT"))],
-            key.DOWN: ["lab_up",
+            key.DOWN: ["lab_down",
                        lambda: _state(lambda s: ui.apply_action(s, "DOWN"))],
-            key.UP: ["lab_down",
+            key.UP: ["lab_up",
                      lambda: _state(lambda s: ui.apply_action(s, "UP"))],
             key.SPACE: ["lab_pick",
                         lambda: _state(lambda s: ui.apply_action(s, "PICK"))],

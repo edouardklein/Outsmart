@@ -60,14 +60,16 @@ def step_3(s):
         rock_nearby = False
         for i in i_list:
             for j in j_list:
-                rock_nearby = rock_nearby or s.lab[i, j] // 100 == 4
+                rock_nearby = rock_nearby or s.lab[i, j] // 100 == 3
         return rock_nearby
     s.ui.story_text = """Uh-oh, something went wrong :
 In this lab setting, there is no reward
 that could let Bob know how it's doing.
 Let's change that."""
-    s.ui.obj_text = """Spawn some white rocks somewhere right next to Bob
-by right-clicking multiple times on the appropriate tile."""
+    s.ui.obj_text = """Spawn some crystals somewhere right next to Bob
+by using the mod tool in the lower right corner.
+Click on the arrow to select the appropriate tile,
+Then click on the tile to activate or deactivate the mod tool."""
     s.ui.active["lab_next_tile"] = True
     s.ui.active["lab_prev_tile"] = True
     s.ui.active["lab_current_tile"] = True
@@ -81,9 +83,10 @@ def step_4(s):
     """Sucessful training"""
     s.ui.story_text = """Good Job !
 Now, training Bob will succeed.
-Bob is wired to collect rocks and crystals. You can't change that.
-You can, however, change the environment and use rocks and
-crystals as a motivator to make Bob do what you want.
+Bob is wired to collect crystals. You can't change that.
+You can, however, change the environment and use crystals
+as a motivator to make Bob do what you want.
+You can use rocks to block its path.
 When dealing with animals food is used as a reward.
 This is the same here, only with robots."""
     s.ui.obj_text = "Try again to train Bob by clicking on the"
@@ -100,11 +103,11 @@ def step_5(s):
     s.ui.story_text = """Good Job !
 Let's see what Bob has learnt by stepping
 through its new-found "policy"."""
-    s.ui.obj_text = """Repeatedly press [s] on your keyboard to step
-through Bob's actions until Bob collects the rocks.
+    s.ui.obj_text = """Repeatedly press the step button to step
+through Bob's actions until Bob collects the crystals.
 If it doesnt work, you may have to train Bob
-again and then press [s]"""
-    s.obj_func = lambda s: len(np.argwhere(s.lab//100 == 4)) == 0
+again and then press step."""
+    s.obj_func = lambda s: len(np.argwhere(s.lab//100 == 3)) == 0
     s.next_func = step_6
     return s
 
@@ -113,9 +116,12 @@ again and then press [s]"""
 def step_6(s):
     """Resetting the robot"""
     s.ui.active["lab_wild_reset"] = True
-    s.ui.story_text = """Well this is underwhelming, but the lab setting was not
-very interesting to begin with.
-Let's reset Bob."""
+    s.ui.story_text = """Well this is underwhelming, but the lab setting was very
+simple.
+Bob can only learn when the reward is easily accessible.
+If it is too far away, Bob will not reach it during training.
+Let's reset Bob to make it forget its policy.
+You can do that to start over when the training is not as you liked."""
     s.ui.obj_text = """Reset Bob by clicking on the "Reset" button."""
     s.obj_func = lambda s: np.linalg.norm(s.rl.omega) == 0
     s.next_func = step_7
@@ -137,17 +143,20 @@ in the wild."""
 @return_copy
 def step_8(s):
     """The wild is harsh"""
-    ui.checkpoint_now(s)
+    s.obj_func = lambda s: False
 
     @return_copy
     def victory(s):
         """Won by chance, let's try again"""
-        s = ui.victory()
+        s = ui.victory(s)
         s.ui.end_text = """RANDOM VICTORY.
 This will not happen everytime.
 Try again and see for yourself."""
+        s.ui.story_text = """You got lucky : the red robot walked into the
+trap by chance."""
         s.ui.obj_text = """Click on the "Retry" button"""
-        osmt.STATE.active_ui["retry"] = True
+        s.ui.active["retry"] = True
+        #g.BUTTONS["retry"][-1] = lambda: g._state(step_9)
         return s
     s.ui.victory = victory
 
@@ -159,6 +168,7 @@ Try again and see for yourself."""
 is just a temporary setback.
 We can time travel back to before you killed us all and try again."""
         s.ui.obj_text = """Click on the "Retry" button"""
+        s.obj_func = lambda s: False
         s.nb_resources = 0
         g.BUTTONS["retry"][-1] = lambda: g._state(step_9)
         s.ui.active["obj_text"] = True
@@ -173,12 +183,14 @@ Alone in the wild, the red robot will act randomly in order to
 explore its world and gather data with which to optimize
 ressource collection."""
     s.ui.obj_text = """Press [s] repeatedly to see the red robot exploring."""
+    ui.checkpoint_now(s)
     return s
 
 
 @return_copy
 def step_9(s):
     """Back to training"""
+    ## FIXME erase all step 8 modifs (victory, obj, etc.)
     s.ui.end_text = ""
     s.ui.active["retry"] = False
     s = ui.wild(s)
@@ -227,12 +239,15 @@ the path."""
 def step_11(s):
     """WIP"""
     s.ui.story_text = """Time to tie it all together :
-By placing resources (rocks or crystals) and training Bob,
+By placing resources (crystals) and training Bob,
 teach it to follow the grassy path.
 You can reset Bob and start over if the training does not work.
 You can train mutliple times to add on to Bob's experience.
 When you feel confident, go into the wild and press [s] to see
-if you tricked the red robot."""
+if you tricked the red robot.
+If the red robot does not follow the path,
+click reset (in the wild) to send it back
+to its original position."""
     return s
 
 
