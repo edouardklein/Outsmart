@@ -253,4 +253,6 @@ to its original position."""
     return s
 
 
+g.new_state()
 g.STATE = step_1(g.STATE)
+

@@ -3,5 +3,5 @@ import graphics
 import ui
 
 
-graphics.STATE.ui.active = ui.ALL_INACTIVE
+graphics.new_state()
 graphics.STATE.ui.active.update(ui.EDITOR_ACTIVE)

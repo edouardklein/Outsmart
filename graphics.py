@@ -428,12 +428,19 @@ def on_mouse_press(x, y, button, modifiers):
 def _quit(s):
     """Go to main menu"""
     s.ui.active = MAIN_MENU_ACTIVE.copy()
+    s.victorious = lambda s: False
     return s
 
 
-PLAYER = pyglet.media.Player()
-STATE = osmt.State()
-STATE.ui = ui.UI()
+def new_state():
+    global STATE
+    global PLAYER
+    PLAYER = pyglet.media.Player()
+    STATE = osmt.State()
+    STATE.ui = ui.UI()
+
+
+new_state()
 # Main menu hack
 _d = level_buttons()
 BUTTONS.update(_d)
