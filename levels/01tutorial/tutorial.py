@@ -74,6 +74,7 @@ Then click on the tile to activate or deactivate the mod tool."""
     s.ui.active["lab_next_tile"] = True
     s.ui.active["lab_prev_tile"] = True
     s.ui.active["lab_current_tile"] = True
+    s.ui.active["lab_current_tile_legend"] = True
     s.obj_func = success
     s.next_func = step_4
     return s
@@ -206,6 +207,8 @@ follow a grassy path..."""
     s.ui.obj_text = """Click on the "Lab" button."""
     s.obj_func = lambda s: s.ui.terrain == ui.get_lab
     s.next_func = step_10
+    g.BUTTONS["retry"][-1] = lambda: g._state(ui.retry)
+    ui.checkpoint_now(s)
     return s
 
 
@@ -251,6 +254,7 @@ If the red robot does not follow the path,
 click reset (in the wild) to send it back
 to its original position."""
     s.ui.obj_text = """Make the red robot walk into the trap."""
+    ui.checkpoint_now(s)
     return s
 
 
