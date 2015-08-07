@@ -1,5 +1,5 @@
 ﻿* [Bug] Le sous texte dans end_texte n'apparait pas, du coup le mot "growth" n'apparait pas direcement.
-* [Ajout] Rajouter la vidéo d'intro
+* [Ajout] Rajouter la vidéo d'intro -> Doudou
 * [Bug] Sons superposés si l'on quitte puis relance un niveau
 * [Bug] Boutons graphiquement bugués: il y a un BUTTON_CENTER de trop la plupart du temps
 * [Ajout] Bouton exit sur menu
