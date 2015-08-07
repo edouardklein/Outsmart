@@ -1,7 +1,7 @@
 import cx_Freeze
 from glob import glob
 
-executables = [cx_Freeze.Executable("launch.py"), cx_Freeze.Executable("levels/99level_editor/level_editor.py")]
+executables = [cx_Freeze.Executable("launch.py")]
 
 include_files = [(g, g) for g in glob("levels/*/*")]
 include_files += ["/Windows/System32/avbin64.dll", ("snd/", "snd/"), ("img/", "img/")]
