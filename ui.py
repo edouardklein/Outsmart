@@ -23,9 +23,9 @@ def victory(s):
 @return_copy
 def defeat(s):
     """Print defeat, play song, let the option of trying again"""
-    s.ui.end_text = "Defeat !\n"
-    "The robots grew in number and wiped out "
-    "the human race."
+    s.ui.end_text = """Defeat !
+The robots grew in number and wiped out
+the human race."""
     s.ui.story_text = "Defeat !"
     s.ui.obj_text = ""
     s.ui.log_text = ""

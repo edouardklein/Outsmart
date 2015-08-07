@@ -103,15 +103,22 @@ def level_buttons():
     return answer
 
 
-BUTTONS = {"lab_wild_reset": [10, 50, lambda s: "Reset", lambda: _state(ui.reset)],
-           "lab_train": [10, 100, lambda s: "Train", lambda:  _state(ui.train)],
-           "lab_wild_step": [10, 150, lambda s: "Step", lambda:  _state(ui.step)],
-           "editor_load": [10, 200, lambda s: "Load", lambda:  _state(ui.load)],
-           "editor_save": [200, 200, lambda s: "Save", lambda:  _state(ui.save)],
-           "lab_go_wild": [10, 250, lambda s: "Wild", lambda:  _state(ui.wild)],
+BUTTONS = {"lab_wild_reset": [10, 50, lambda s: "Reset",
+                              lambda: _state(ui.reset)],
+           "lab_train": [10, 100, lambda s: "Train",
+                         lambda:  _state(ui.train)],
+           "lab_wild_step": [10, 150, lambda s: "Step",
+                             lambda:  _state(ui.step)],
+           "editor_load": [10, 200, lambda s: "Load",
+                           lambda:  _state(ui.load)],
+           "editor_save": [200, 200, lambda s: "Save",
+                           lambda:  _state(ui.save)],
+           "lab_go_wild": [10, 250, lambda s: "Wild",
+                           lambda:  _state(ui.wild)],
            "lab_copy_wild": [100, 250, lambda s: "Copy wild",
                              lambda:  _state(ui.copy_wild)],
-           "wild_go_lab": [200, 250, lambda s: "Lab", lambda:  _state(ui.lab)],
+           "wild_go_lab": [200, 250, lambda s: "Lab",
+                           lambda:  _state(ui.lab)],
            "lab_wild_quit": [10, 300, lambda s: "Exit",
                              lambda: _state(_quit)],
 
@@ -129,8 +136,8 @@ BUTTONS = {"lab_wild_reset": [10, 50, lambda s: "Reset", lambda: _state(ui.reset
                                 lambda s: nb2images(s.ui.current_tile)[0],
                                 lambda: _state(ui.tile_tool)],
            "lab_current_tile_legend": [1020, 10,
-                                lambda s: ui.tile_name(s.ui.current_tile),
-                                lambda: _state(ui.tile_tool)]}
+                                       lambda s: ui.tile_name(s.ui.current_tile),
+                                       lambda: _state(ui.tile_tool)]}
 
 
 ############################################
@@ -328,7 +335,8 @@ def draw_end_text(text):
     l = text.split("\n")
     draw_text([[WINDOW.width//2, WINDOW.height//2, 36, l[0]]],
               center=True)
-    draw_text(xy_text(500, 500, l[1:]))
+    draw_text(xy_text(WINDOW.width//2-100,
+                      WINDOW.height//2-50, l[1:]))
 
 
 def draw_all_texts(s):

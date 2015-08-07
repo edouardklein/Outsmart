@@ -1,4 +1,4 @@
-﻿* [Bug] Le sous texte dans end_texte n'apparait pas, du coup le mot "growth" n'apparait pas direcement.
+﻿k [Bug] Le sous texte dans end_texte n'apparait pas, du coup le mot "growth" n'apparait pas direcement.
 * [Bug] Sons superposés si l'on quitte puis relance un niveau
 k [Bug] Boutons graphiquement bugués: il y a un BUTTON_CENTER de trop la plupart du temps
 k [Bug] Mauvaise police sur Windows et linux
@@ -11,7 +11,7 @@ k [Ajout] Nom des tiles en plus des images dans la gallery?
 * [Ajout] Autogénération des miniatures pour le menu
 * [Ajout] Nombre de tiles limitées
 k [Ajout] Crédits à la fin (tiles, robot, musique, avbin, nous)
-* [Ajout] Un README sur GitHub -> doudou
+k [Ajout] Un README sur GitHub
 k [Ajout] Rajouter la vidéo d'intro
 
 * Proposition : Soumission sur Reddit (/r/machinelearning, /r/shamelessplug, /r/gaming ?)
