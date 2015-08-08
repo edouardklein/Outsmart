@@ -12,11 +12,11 @@ Binaries can be downloaded :
 For windows : https://www.dropbox.com/s/n9nz5p9ua0ne9t8/Outsmart.exe?dl=0
 For Mac : http://rdklein.fr/launch.zip
 
-For other platforms or to run the latest dev version, clone this repo and then :
+There is no Linux package at the moment, although it will run from source.
 
-`./launch.py`
+You need Python >=3.4 (it may work with 3.3 but is untested), avbin (https://code.google.com/p/avbin/downloads/detail?name=avbin-linux-x86-64-7.tar.gz), pyglet and numpy (pip install pyglet numpy).
 
-You will need to install pyglet and avbin.
+Then you can run `./launch.py`
 
 ## GAMEPLAY
 
